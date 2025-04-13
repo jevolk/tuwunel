@@ -1,4 +1,4 @@
-# tuwunel
+# Tuwunel <sup>🎔</sup>
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/matrix-construct/tuwunel?style=flat&color=%23fcba03&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/matrix-construct/tuwunel?style=flat&color=%2303fcb1&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel%2Fpulse%2Fmonthly) ![GitHub Created At](https://img.shields.io/github/created-at/matrix-construct/tuwunel) ![GitHub License](https://img.shields.io/github/license/matrix-construct/tuwunel)
 
@@ -34,6 +34,10 @@ No.
 #### Can I migrate from Synapse?
 
 No, but this is planned.
+
+## Tuwunel
+
+Tuwunel's theme is _empathy in communication_ as defined by the works of [Edith Stein](https://plato.stanford.edu/entries/stein/).
 
 <!-- ANCHOR_END: body -->
 
