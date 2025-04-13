@@ -1,7 +1,7 @@
 use std::{fmt::Write, path::PathBuf, sync::Arc};
 
 use conduwuit::{
-	Err, Result, info,
+	Err, Result, alloc, info,
 	utils::{stream::IterStream, time},
 	warn,
 };
@@ -68,8 +68,9 @@ pub(super) async fn list_features(&self, available: bool, enabled: bool, comma: 
 pub(super) async fn memory_usage(&self) -> Result {
 	let services_usage = self.services.memory_usage().await?;
 	let database_usage = self.services.db.db.memory_usage()?;
-	let allocator_usage =
-		conduwuit::alloc::memory_usage().map_or(String::new(), |s| format!("\nAllocator:\n{s}"));
+	let allocator_usage = alloc::memory_usage()
+		.map(|s| format!("\nAllocator:\n{s}"))
+		.unwrap_or_default();
 
 	self.write_str(&format!(
 		"Services:\n{services_usage}\nDatabase:\n{database_usage}{allocator_usage}",
