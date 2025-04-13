@@ -4,7 +4,7 @@ variable "repo" {}
 cargo_feat_sets = {
 	none = ""
 	default = "brotli_compression,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,media_thumbnail,release_max_log_level,systemd,url_preview,zstd_compression"
-	all = "blurhashing,brotli_compression,conduwuit_mods,console,default,direct_tls,element_hacks,gzip_compression,hardened_malloc,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,url_preview,zstd_compression"
+	all = "blurhashing,brotli_compression,conduwuit_mods,console,default,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,url_preview,zstd_compression"
 }
 
 variable "cargo_features_always" {
@@ -1151,6 +1151,7 @@ target "system" {
 	labels = {
 		"_group" = "systems"
 		"_cache" = "trunk"
+		"cache" = "pin"
 	}
 	matrix = sys
 	context = "."

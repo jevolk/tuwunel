@@ -59,40 +59,33 @@ pub fn is_redacted(&self) -> bool {
 /// [recommendation](https://spec.matrix.org/v1.10/rooms/v11/#moving-the-redacts-property-of-mroomredaction-events-to-a-content-property):
 ///
 /// > For backwards-compatibility with older clients, servers should add a
-/// > redacts
-/// > property to the top level of m.room.redaction events in when serving
-/// > such events
-/// > over the Client-Server API.
+/// > redacts property to the top level of m.room.redaction events in when
+/// > serving such events over the Client-Server API.
 ///
 /// > For improved compatibility with newer clients, servers should add a
-/// > redacts property
-/// > to the content of m.room.redaction events in older room versions when
-/// > serving
-/// > such events over the Client-Server API.
+/// > redacts property to the content of m.room.redaction events in older
+/// > room versions when serving such events over the Client-Server API.
 #[implement(super::Pdu)]
 #[must_use]
 pub fn copy_redacts(&self) -> (Option<OwnedEventId>, Box<RawJsonValue>) {
-	if self.kind == TimelineEventType::RoomRedaction {
-		if let Ok(mut content) =
-			serde_json::from_str::<RoomRedactionEventContent>(self.content.get())
-		{
-			match content.redacts {
-				| Some(redacts) => {
-					return (Some(redacts), self.content.clone());
-				},
-				| _ => match self.redacts.clone() {
-					| Some(redacts) => {
-						content.redacts = Some(redacts);
-						return (
-							self.redacts.clone(),
-							to_raw_value(&content)
-								.expect("Must be valid, we only added redacts field"),
-						);
-					},
-					| _ => {},
-				},
-			}
-		}
+	if self.kind != TimelineEventType::RoomRedaction {
+		return (self.redacts.clone(), self.content.clone());
+	}
+
+	let Ok(mut content) = self.get_content::<RoomRedactionEventContent>() else {
+		return (self.redacts.clone(), self.content.clone());
+	};
+
+	if let Some(redacts) = content.redacts {
+		return (Some(redacts), self.content.clone());
+	}
+
+	if let Some(redacts) = self.redacts.clone() {
+		content.redacts = Some(redacts);
+		return (
+			self.redacts.clone(),
+			to_raw_value(&content).expect("Must be valid, we only added redacts field"),
+		);
 	}
 
 	(self.redacts.clone(), self.content.clone())

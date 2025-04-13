@@ -348,9 +348,10 @@ version = "0.1.2"
 
 # Used for matrix spec type definitions and helpers
 [workspace.dependencies.ruma]
-git = "https://github.com/girlbossceo/ruwuma"
+#git = "https://github.com/girlbossceo/ruwuma"
 #branch = "conduwuit-changes"
-rev = "920148dca1076454ca0ca5d43b5ce1aa708381d4"
+#rev = "920148dca1076454ca0ca5d43b5ce1aa708381d4"
+path = "/home/ubuntu/ruma/crates/ruma"
 features = [
     "compat",
     "rand",
@@ -577,8 +578,24 @@ rev = "9c8e51510c35077df888ee72a36b4b05637147da"
 
 # reverts hyperium#148 conflicting with our delicate federation resolver hooks
 [patch.crates-io.hyper-util]
-git = "https://github.com/girlbossceo/hyper-util"
-rev = "e4ae7628fe4fcdacef9788c4c8415317a4489941"
+#git = "https://github.com/girlbossceo/hyper-util"
+#rev = "e4ae7628fe4fcdacef9788c4c8415317a4489941"
+path = "/home/ubuntu/hyper-util"
+
+[patch."https://github.com/girlbossceo/jemallocator".tikv-jemalloc-ctl]
+path = "/home/ubuntu/jemallocator/jemalloc-ctl"
+
+[patch."https://github.com/girlbossceo/jemallocator".tikv-jemallocator]
+path = "/home/ubuntu/jemallocator/jemallocator"
+
+[patch."https://github.com/girlbossceo/jemallocator".tikv-jemalloc-sys]
+path = "/home/ubuntu/jemallocator/jemalloc-sys"
+
+[patch.crates-io.futures]
+path = "/home/ubuntu/futures-rs/futures"
+
+[patch.crates-io.tokio]
+path = "/home/ubuntu/tokio/tokio"
 
 # allows no-aaaa option in resolv.conf
 # bumps rust edition and toolchain to 1.86.0 and 2024
@@ -633,7 +650,7 @@ default-features = false
 
 [profile.release]
 strip = "symbols"
-lto = "thin"
+lto = "off"
 
 # release profile with debug symbols
 [profile.release-debuginfo]
@@ -692,6 +709,7 @@ inherits = "release-max-perf.build-override"
 [profile.bench]
 debug = "limited"
 strip = false
+lto = "off"
 #rustflags = [
 #	"-Cremark=all",
 #	'-Ztime-passes',
@@ -711,7 +729,7 @@ strip = false
 # and can be raised if build times are tolerable.
 
 [profile.dev]
-debug = "full"
+debug = 0
 #rustflags = [
 #	'--cfg', 'conduwuit_mods',
 #	'-Ztime-passes',

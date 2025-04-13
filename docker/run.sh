@@ -60,8 +60,8 @@ set +a
 
 ###############################################################################
 
-tester_image="complement-tester--none--debian--testing-slim--x86_64-linux-gnu"
-testee_image="complement-testee--test--nightly--x86_64-unknown-linux-gnu--none--debian--testing-slim--x86_64-linux-gnu"
+tester_image="complement-tester--all--debian--testing-slim--x86_64-linux-gnu"
+testee_image="complement-testee--test--nightly--x86_64-unknown-linux-gnu--all--debian--testing-slim--x86_64-linux-gnu"
 name="complement_tester_nightly"
 sock="/var/run/docker.sock"
 arg="--rm --name $name -v $sock:$sock --network=host $tester_image ${testee_image}"

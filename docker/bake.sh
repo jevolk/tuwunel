@@ -9,8 +9,10 @@ uwu_repo=${uwu_repo:=$(echo $uwu_id | cut -d"/" -f2)}
 CI="${CI:-0}"
 BASEDIR=$(dirname "$0")
 
-default_cargo_profiles='["test", "bench"]'
-default_feat_sets='["none", "default", "all"]'
+#default_cargo_profiles='["test", "bench"]'
+default_cargo_profiles='["test"]'
+#default_feat_sets='["none", "default", "all"]'
+default_feat_sets='["none", "all"]'
 default_rust_toolchains='["nightly", "stable"]'
 default_rust_targets='["x86_64-unknown-linux-gnu"]'
 default_sys_targets='["x86_64-linux-gnu"]'
