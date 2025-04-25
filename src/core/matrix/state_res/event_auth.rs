@@ -38,7 +38,7 @@ struct GetMembership {
 	membership: MembershipState,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct RoomMemberContentFields {
 	membership: Option<Raw<MembershipState>>,
 	join_authorised_via_users_server: Option<Raw<OwnedUserId>>,
@@ -152,9 +152,9 @@ where
 	Incoming: Event + Send + Sync,
 {
 	debug!(
-		"auth_check beginning for {} ({})",
-		incoming_event.event_id(),
-		incoming_event.event_type()
+		event_id = ?incoming_event.event_id(),
+		event_type = ?incoming_event.event_type(),
+		"auth_check beginning"
 	);
 
 	// [synapse] check that all the events are in the same room as `incoming_event`
@@ -386,11 +386,17 @@ where
 
 	let sender_membership_event_content: RoomMemberContentFields =
 		from_json_str(sender_member_event.content().get())?;
-	let membership_state = sender_membership_event_content
-		.membership
-		.expect("we should test before that this field exists")
-		.deserialize()?;
 
+	let Some(membership_state) = sender_membership_event_content.membership else {
+		warn!(
+			event_id = ?incoming_event.event_id(),
+			content = ?sender_membership_event_content,
+			"Sender membership event content missing membership field"
+		);
+		return Err(Error::InvalidPdu("Missing membership field".to_owned()));
+	};
+
+	let membership_state = membership_state.deserialize()?;
 	if !matches!(membership_state, MembershipState::Join) {
 		warn!("sender's membership is not join");
 		return Ok(false);
