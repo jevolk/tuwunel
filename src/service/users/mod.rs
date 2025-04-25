@@ -672,7 +672,7 @@ impl Service {
 
 			self.db
 				.userid_usersigningkeyid
-				.put(user_id, user_signing_key_key);
+				.raw_put(user_id, user_signing_key_key);
 		}
 
 		if notify {
