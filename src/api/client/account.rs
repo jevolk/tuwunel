@@ -388,8 +388,7 @@ pub(crate) async fn register_route(
 		.is_empty()
 		&& body.appservice_info.is_none()
 	{
-		write!(displayname, " {}", services.server.config.new_user_displayname_suffix)
-			.expect("should be able to write to string buffer");
+		write!(displayname, " {}", services.server.config.new_user_displayname_suffix)?;
 	}
 
 	services
@@ -409,8 +408,7 @@ pub(crate) async fn register_route(
 				content: ruma::events::push_rules::PushRulesEventContent {
 					global: push::Ruleset::server_default(&user_id),
 				},
-			})
-			.expect("to json always works"),
+			})?,
 		)
 		.await?;
 

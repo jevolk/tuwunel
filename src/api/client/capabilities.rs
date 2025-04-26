@@ -26,12 +26,12 @@ pub(crate) async fn get_capabilities_route(
 
 	let mut capabilities = Capabilities::default();
 	capabilities.room_versions = RoomVersionsCapability {
+		available,
 		default: services
 			.server
 			.config
 			.default_room_version
 			.clone(),
-		available,
 	};
 
 	// we do not implement 3PID stuff
@@ -42,16 +42,12 @@ pub(crate) async fn get_capabilities_route(
 	};
 
 	// MSC4133 capability
-	capabilities
-		.set("uk.tcpip.msc4133.profile_fields", json!({"enabled": true}))
-		.expect("this is valid JSON we created");
+	capabilities.set("uk.tcpip.msc4133.profile_fields", json!({"enabled": true}))?;
 
-	capabilities
-		.set(
-			"org.matrix.msc4267.forget_forced_upon_leave",
-			json!({"enabled": services.config.forget_forced_upon_leave}),
-		)
-		.expect("valid JSON we created");
+	capabilities.set(
+		"org.matrix.msc4267.forget_forced_upon_leave",
+		json!({"enabled": services.config.forget_forced_upon_leave}),
+	)?;
 
 	Ok(get_capabilities::v3::Response { capabilities })
 }
