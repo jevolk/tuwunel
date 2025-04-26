@@ -4,14 +4,13 @@ mod execute;
 mod grant;
 
 use std::{
-	future::Future,
 	pin::Pin,
 	sync::{Arc, RwLock as StdRwLock, Weak},
 };
 
 use async_trait::async_trait;
 pub use create::create_admin_room;
-use futures::{FutureExt, TryFutureExt};
+use futures::{Future, FutureExt, TryFutureExt};
 use loole::{Receiver, Sender};
 use ruma::{
 	OwnedEventId, OwnedRoomId, RoomId, UserId,
