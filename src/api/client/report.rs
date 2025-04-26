@@ -30,10 +30,7 @@ pub(crate) async fn report_room_route(
 	body: Ruma<report_room::v3::Request>,
 ) -> Result<report_room::v3::Response> {
 	// user authentication
-	let sender_user = body
-		.sender_user
-		.as_ref()
-		.expect("user is authenticated");
+	let sender_user = body.sender_user();
 
 	info!(
 		"Received room report by user {sender_user} for room {} with reason: \"{}\"",
@@ -91,10 +88,7 @@ pub(crate) async fn report_event_route(
 	body: Ruma<report_content::v3::Request>,
 ) -> Result<report_content::v3::Response> {
 	// user authentication
-	let sender_user = body
-		.sender_user
-		.as_ref()
-		.expect("user is authenticated");
+	let sender_user = body.sender_user();
 
 	info!(
 		"Received event report by user {sender_user} for room {} and event ID {}, with reason: \
