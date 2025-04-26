@@ -5,11 +5,8 @@ use futures::{StreamExt, TryStreamExt, future::join3};
 use ruma::{
 	OwnedMxcUri, OwnedRoomId, UserId,
 	api::{
-		client::{
-			error::ErrorKind,
-			profile::{
-				get_avatar_url, get_display_name, get_profile, set_avatar_url, set_display_name,
-			},
+		client::profile::{
+			get_avatar_url, get_display_name, get_profile, set_avatar_url, set_display_name,
 		},
 		federation,
 	},
@@ -17,7 +14,7 @@ use ruma::{
 	presence::PresenceState,
 };
 use tuwunel_core::{
-	Err, Error, Result,
+	Err, Result,
 	matrix::pdu::PduBuilder,
 	utils::{IterStream, stream::TryIgnore},
 	warn,
@@ -110,7 +107,7 @@ pub(crate) async fn get_displayname_route(
 	if !services.users.exists(&body.user_id).await {
 		// Return 404 if this user doesn't exist and we couldn't fetch it over
 		// federation
-		return Err(Error::BadRequest(ErrorKind::NotFound, "Profile was not found."));
+		return Err!(Request(NotFound("Profile was not found.")));
 	}
 
 	Ok(get_display_name::v3::Response {
@@ -218,7 +215,7 @@ pub(crate) async fn get_avatar_url_route(
 	if !services.users.exists(&body.user_id).await {
 		// Return 404 if this user doesn't exist and we couldn't fetch it over
 		// federation
-		return Err(Error::BadRequest(ErrorKind::NotFound, "Profile was not found."));
+		return Err!(Request(NotFound("Profile was not found.")));
 	}
 
 	Ok(get_avatar_url::v3::Response {
@@ -298,7 +295,7 @@ pub(crate) async fn get_profile_route(
 	if !services.users.exists(&body.user_id).await {
 		// Return 404 if this user doesn't exist and we couldn't fetch it over
 		// federation
-		return Err(Error::BadRequest(ErrorKind::NotFound, "Profile was not found."));
+		return Err!(Request(NotFound("Profile was not found.")));
 	}
 
 	let mut custom_profile_fields: BTreeMap<String, serde_json::Value> = services

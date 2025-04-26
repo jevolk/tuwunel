@@ -110,10 +110,9 @@ pub(super) async fn handle_outlier_pdu<'a>(
 				v.insert(auth_event);
 			},
 			| hash_map::Entry::Occupied(_) => {
-				return Err(Error::BadRequest(
-					ErrorKind::InvalidParam,
+				return Err!(Request(InvalidParam(
 					"Auth event's type and state_key combination exists multiple times.",
-				));
+				)));
 			},
 		}
 	}
