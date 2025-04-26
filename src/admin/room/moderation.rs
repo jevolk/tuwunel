@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use ruma::{OwnedRoomId, OwnedRoomOrAliasId, RoomAliasId, RoomId, RoomOrAliasId};
 use tuwunel_api::client::leave_room;
 use tuwunel_core::{

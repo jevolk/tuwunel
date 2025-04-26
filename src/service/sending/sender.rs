@@ -39,7 +39,7 @@ use ruma::{
 };
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value};
 use tuwunel_core::{
-	Error, Result, debug, err, error,
+	Error, Event, Result, debug, err, error,
 	result::LogErr,
 	trace,
 	utils::{
@@ -731,7 +731,7 @@ impl Service {
 						.get_pdu_from_id(pdu_id)
 						.await
 					{
-						pdu_jsons.push(pdu.into_room_event());
+						pdu_jsons.push(pdu.to_format());
 					}
 				},
 				| SendingEvent::Edu(edu) =>

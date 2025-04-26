@@ -14,7 +14,7 @@ use ruma::{
 use search_events::v3::{Request, Response};
 use tuwunel_core::{
 	Err, Result, at, is_true,
-	matrix::pdu::PduEvent,
+	matrix::Event,
 	result::FlatOk,
 	utils::{IterStream, stream::ReadyExt},
 };
@@ -149,7 +149,7 @@ async fn category_room_events(
 		.map(at!(2))
 		.flatten()
 		.stream()
-		.map(PduEvent::into_room_event)
+		.map(Event::into_format)
 		.map(|result| SearchResult {
 			rank: None,
 			result: Some(result),
@@ -190,7 +190,7 @@ async fn procure_room_state(services: &Services, room_id: &RoomId) -> Result<Roo
 		.rooms
 		.state_accessor
 		.room_state_full_pdus(room_id)
-		.map_ok(PduEvent::into_state_event)
+		.map_ok(Event::into_format)
 		.try_collect()
 		.await?;
 

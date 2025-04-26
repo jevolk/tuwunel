@@ -18,7 +18,7 @@ use ruma::{
 };
 use tokio::sync::RwLock;
 use tuwunel_core::{
-	Error, PduEvent, Result, Server, debug, err, error, error::default_log, pdu::PduBuilder,
+	Error, Event, Result, Server, debug, err, error, error::default_log, pdu::PduBuilder,
 };
 
 use crate::{Dep, account_data, globals, rooms, rooms::state::RoomMutexGuard};
@@ -335,7 +335,10 @@ impl Service {
 		Ok(())
 	}
 
-	pub async fn is_admin_command(&self, pdu: &PduEvent, body: &str) -> bool {
+	pub async fn is_admin_command<E>(&self, event: &E, body: &str) -> bool
+	where
+		E: Event + Send + Sync,
+	{
 		// Server-side command-escape with public echo
 		let is_escape = body.starts_with('\\');
 		let is_public_escape = is_escape
@@ -353,8 +356,13 @@ impl Service {
 			return false;
 		}
 
+		let user_is_local = self
+			.services
+			.globals
+			.user_is_local(event.sender());
+
 		// only allow public escaped commands by local admins
-		if is_public_escape && !self.services.globals.user_is_local(&pdu.sender) {
+		if is_public_escape && !user_is_local {
 			return false;
 		}
 
@@ -364,12 +372,12 @@ impl Service {
 		}
 
 		// Prevent unescaped !admin from being used outside of the admin room
-		if is_public_prefix && !self.is_admin_room(&pdu.room_id).await {
+		if is_public_prefix && !self.is_admin_room(event.room_id()).await {
 			return false;
 		}
 
 		// Only senders who are admin can proceed
-		if !self.user_is_admin(&pdu.sender).await {
+		if !self.user_is_admin(event.sender()).await {
 			return false;
 		}
 
@@ -381,8 +389,8 @@ impl Service {
 			.config
 			.emergency_password
 			.is_some();
-		let from_server = pdu.sender == *server_user && !emergency_password_set;
-		if from_server && self.is_admin_room(&pdu.room_id).await {
+		let from_server = event.sender() == server_user && !emergency_password_set;
+		if from_server && self.is_admin_room(event.room_id()).await {
 			return false;
 		}
 

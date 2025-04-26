@@ -5,9 +5,7 @@ use futures::{
 };
 use ruma::{OwnedEventId, UserId, api::client::context::get_context, events::StateEventType};
 use tuwunel_core::{
-	Err, Result, at, debug_warn, err,
-	matrix::pdu::PduEvent,
-	ref_at,
+	Err, Event, Result, at, debug_warn, err, ref_at,
 	utils::{
 		IterStream,
 		future::TryExtExt,
@@ -190,14 +188,12 @@ pub(crate) async fn get_context_route(
 				.get_pdu(event_id.as_ref())
 				.ok()
 		})
-		.map(PduEvent::into_state_event)
+		.map(Event::into_format)
 		.collect()
 		.await;
 
 	Ok(get_context::v3::Response {
-		event: base_event
-			.map(at!(1))
-			.map(PduEvent::into_room_event),
+		event: base_event.map(at!(1)).map(Event::into_format),
 
 		start: events_before
 			.last()
@@ -216,13 +212,13 @@ pub(crate) async fn get_context_route(
 		events_before: events_before
 			.into_iter()
 			.map(at!(1))
-			.map(PduEvent::into_room_event)
+			.map(Event::into_format)
 			.collect(),
 
 		events_after: events_after
 			.into_iter()
 			.map(at!(1))
-			.map(PduEvent::into_room_event)
+			.map(Event::into_format)
 			.collect(),
 
 		state,

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use futures::{Stream, StreamExt};
 use ruma::{RoomId, UserId, api::client::search::search_events::v3::Criteria};
 use tuwunel_core::{
-	PduCount, PduEvent, Result,
+	Event, PduCount, PduEvent, Result,
 	arrayvec::ArrayVec,
 	implement,
 	utils::{

@@ -379,8 +379,6 @@ impl Service {
 			.await
 			.unwrap_or_default();
 
-		let sync_pdu = pdu.to_sync_room_event();
-
 		let mut push_target: HashSet<_> = self
 			.services
 			.state_cache
@@ -410,6 +408,7 @@ impl Service {
 			}
 		}
 
+		let serialized = pdu.to_format();
 		for user in &push_target {
 			let rules_for_user = self
 				.services
@@ -427,7 +426,7 @@ impl Service {
 			for action in self
 				.services
 				.pusher
-				.get_actions(user, &rules_for_user, &power_levels, &sync_pdu, &pdu.room_id)
+				.get_actions(user, &rules_for_user, &power_levels, &serialized, &pdu.room_id)
 				.await
 			{
 				match action {
@@ -783,7 +782,7 @@ impl Service {
 
 		let auth_fetch = |k: &StateEventType, s: &str| {
 			let key = (k.clone(), s.into());
-			ready(auth_events.get(&key))
+			ready(auth_events.get(&key).map(ToOwned::to_owned))
 		};
 
 		let auth_check = state_res::auth_check(

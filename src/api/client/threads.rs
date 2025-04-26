@@ -3,7 +3,10 @@ use futures::StreamExt;
 use ruma::{api::client::threads::get_threads, uint};
 use tuwunel_core::{
 	Result, at,
-	matrix::pdu::{PduCount, PduEvent},
+	matrix::{
+		Event,
+		pdu::{PduCount, PduEvent},
+	},
 };
 
 use crate::Ruma;
@@ -56,7 +59,7 @@ pub(crate) async fn get_threads_route(
 		chunk: threads
 			.into_iter()
 			.map(at!(1))
-			.map(PduEvent::into_room_event)
+			.map(Event::into_format)
 			.collect(),
 	})
 }

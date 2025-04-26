@@ -2,7 +2,7 @@ use axum::extract::State;
 use futures::TryStreamExt;
 use ruma::api::client::room::initial_sync::v3::{PaginationChunk, Request, Response};
 use tuwunel_core::{
-	Err, PduEvent, Result, at,
+	Err, Event, Result, at,
 	utils::{BoolExt, stream::TryTools},
 };
 
@@ -38,7 +38,7 @@ pub(crate) async fn room_initial_sync_route(
 		.rooms
 		.state_accessor
 		.room_state_full_pdus(room_id)
-		.map_ok(PduEvent::into_state_event)
+		.map_ok(Event::into_format)
 		.try_collect()
 		.await?;
 
@@ -59,7 +59,7 @@ pub(crate) async fn room_initial_sync_route(
 		chunk: events
 			.into_iter()
 			.map(at!(1))
-			.map(PduEvent::into_room_event)
+			.map(Event::into_format)
 			.collect(),
 	};
 

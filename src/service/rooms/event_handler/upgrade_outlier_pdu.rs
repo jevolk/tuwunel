@@ -4,7 +4,7 @@ use futures::{FutureExt, StreamExt, future::ready};
 use ruma::{CanonicalJsonValue, RoomId, ServerName, events::StateEventType};
 use tuwunel_core::{
 	Err, Result, debug, debug_info, err, implement,
-	matrix::{EventTypeExt, PduEvent, StateKey, state_res},
+	matrix::{Event, EventTypeExt, PduEvent, StateKey, state_res},
 	trace,
 	utils::stream::{BroadbandExt, ReadyExt},
 	warn,
@@ -118,7 +118,7 @@ pub(super) async fn upgrade_outlier_to_timeline_pdu(
 
 	let state_fetch = |k: &StateEventType, s: &str| {
 		let key = k.with_state_key(s);
-		ready(auth_events.get(&key).cloned())
+		ready(auth_events.get(&key).map(ToOwned::to_owned))
 	};
 
 	let auth_check = state_res::event_auth::auth_check(

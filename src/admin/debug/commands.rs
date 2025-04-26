@@ -9,12 +9,15 @@ use futures::{FutureExt, StreamExt, TryStreamExt};
 use ruma::{
 	CanonicalJsonObject, CanonicalJsonValue, EventId, OwnedEventId, OwnedRoomId,
 	OwnedRoomOrAliasId, OwnedServerName, RoomId, RoomVersionId,
-	api::federation::event::get_room_state,
+	api::federation::event::get_room_state, events::AnyStateEvent, serde::Raw,
 };
 use tracing_subscriber::EnvFilter;
 use tuwunel_core::{
 	Err, Result, debug_error, err, info,
-	matrix::pdu::{PduEvent, PduId, RawPduId},
+	matrix::{
+		Event,
+		pdu::{PduEvent, PduId, RawPduId},
+	},
 	trace, utils,
 	utils::{
 		stream::{IterStream, ReadyExt},
@@ -306,12 +309,12 @@ pub(super) async fn get_remote_pdu(
 #[admin_command]
 pub(super) async fn get_room_state(&self, room: OwnedRoomOrAliasId) -> Result {
 	let room_id = self.services.rooms.alias.resolve(&room).await?;
-	let room_state: Vec<_> = self
+	let room_state: Vec<Raw<AnyStateEvent>> = self
 		.services
 		.rooms
 		.state_accessor
 		.room_state_full_pdus(&room_id)
-		.map_ok(PduEvent::into_state_event)
+		.map_ok(Event::into_format)
 		.try_collect()
 		.await?;
 

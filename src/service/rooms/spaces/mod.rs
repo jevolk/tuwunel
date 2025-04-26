@@ -25,7 +25,7 @@ use ruma::{
 };
 use tokio::sync::{Mutex, MutexGuard};
 use tuwunel_core::{
-	Err, Error, PduEvent, Result, implement,
+	Err, Error, Event, PduEvent, Result, implement,
 	utils::{
 		IterStream,
 		future::{BoolExt, TryExtExt},
@@ -155,7 +155,7 @@ pub async fn get_summary_and_children_local(
 
 	let children_pdus: Vec<_> = self
 		.get_space_child_events(current_room)
-		.map(PduEvent::into_stripped_spacechild_state_event)
+		.map(Event::into_format)
 		.collect()
 		.await;
 
@@ -567,7 +567,7 @@ async fn cache_insert(
 		room_id: room_id.clone(),
 		children_state: self
 			.get_space_child_events(&room_id)
-			.map(PduEvent::into_stripped_spacechild_state_event)
+			.map(Event::into_format)
 			.collect()
 			.await,
 		encryption,

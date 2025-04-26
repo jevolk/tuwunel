@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, fmt::Write as _};
 
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use ruma::{
 	OwnedEventId, OwnedRoomId, OwnedRoomOrAliasId, OwnedUserId, UserId,
 	events::{
@@ -18,7 +18,7 @@ use tuwunel_api::client::{
 };
 use tuwunel_core::{
 	Err, Result, debug, debug_warn, error, info, is_equal_to,
-	matrix::pdu::PduBuilder,
+	matrix::{Event, pdu::PduBuilder},
 	utils::{self, ReadyExt},
 	warn,
 };
