@@ -16,7 +16,7 @@ use ruma::{
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value};
 use tuwunel_core::{
 	Err, Result, at, err,
-	pdu::gen_event_id_canonical_json,
+	matrix::event::gen_event_id_canonical_json,
 	utils::stream::{IterStream, TryBroadbandExt},
 	warn,
 };

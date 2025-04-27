@@ -598,7 +598,7 @@ pub(super) async fn force_set_room_state_from_server(
 		.sending
 		.send_federation_request(&server_name, get_room_state::v1::Request {
 			room_id: room_id.clone(),
-			event_id: first_pdu.event_id.clone(),
+			event_id: first_pdu.event_id().to_owned(),
 		})
 		.await?;
 

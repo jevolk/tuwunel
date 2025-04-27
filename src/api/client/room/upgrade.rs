@@ -18,7 +18,7 @@ use ruma::{
 use serde_json::{json, value::to_raw_value};
 use tuwunel_core::{
 	Error, Result, err, info,
-	matrix::{StateKey, pdu::PduBuilder},
+	matrix::{Event, StateKey, pdu::PduBuilder},
 };
 
 use crate::Ruma;
@@ -226,7 +226,7 @@ pub(crate) async fn upgrade_room_route(
 			.room_state_get(&body.room_id, event_type, "")
 			.await
 		{
-			| Ok(v) => v.content.clone(),
+			| Ok(v) => v.content().to_owned(),
 			| Err(_) => continue, // Skipping missing events.
 		};
 

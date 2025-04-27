@@ -1,5 +1,5 @@
 use axum::extract::State;
-use futures::{StreamExt, future::join};
+use futures::{FutureExt, StreamExt, future::join};
 use ruma::{
 	api::client::membership::{
 		get_member_events::{self, v3::MembershipEventFilter},
@@ -11,8 +11,8 @@ use ruma::{
 	},
 };
 use tuwunel_core::{
-	Err, Event, Result, at,
-	matrix::pdu::PduEvent,
+	Err, Result, at,
+	matrix::Event,
 	utils::{
 		future::TryExtExt,
 		stream::{BroadbandExt, ReadyExt},
@@ -55,6 +55,7 @@ pub(crate) async fn get_member_events_route(
 			.ready_filter_map(|pdu| membership_filter(pdu, membership, not_membership))
 			.map(Event::into_format)
 			.collect()
+			.boxed()
 			.await,
 	})
 }
@@ -98,11 +99,11 @@ pub(crate) async fn joined_members_route(
 	})
 }
 
-fn membership_filter(
-	pdu: PduEvent,
+fn membership_filter<Pdu: Event>(
+	pdu: Pdu,
 	for_membership: Option<&MembershipEventFilter>,
 	not_membership: Option<&MembershipEventFilter>,
-) -> Option<PduEvent> {
+) -> Option<impl Event> {
 	let membership_state_filter = match for_membership {
 		| Some(MembershipEventFilter::Ban) => MembershipState::Ban,
 		| Some(MembershipEventFilter::Invite) => MembershipState::Invite,

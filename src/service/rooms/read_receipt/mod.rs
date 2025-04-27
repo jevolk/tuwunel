@@ -13,7 +13,10 @@ use ruma::{
 };
 use tuwunel_core::{
 	Result, debug, err,
-	matrix::pdu::{PduCount, PduId, RawPduId},
+	matrix::{
+		Event,
+		pdu::{PduCount, PduId, RawPduId},
+	},
 	warn,
 };
 
@@ -84,18 +87,17 @@ impl Service {
 					"Short room ID does not exist in database for {room_id}: {e}"
 				)))
 			});
-		let (pdu_count, shortroomid) = try_join!(pdu_count, shortroomid)?;
 
+		let (pdu_count, shortroomid) = try_join!(pdu_count, shortroomid)?;
 		let shorteventid = PduCount::Normal(pdu_count);
 		let pdu_id: RawPduId = PduId { shortroomid, shorteventid }.into();
-
 		let pdu = self
 			.services
 			.timeline
 			.get_pdu_from_id(&pdu_id)
 			.await?;
 
-		let event_id: OwnedEventId = pdu.event_id;
+		let event_id: OwnedEventId = pdu.event_id().to_owned();
 		let user_id: OwnedUserId = user_id.to_owned();
 		let content: BTreeMap<OwnedEventId, Receipts> = BTreeMap::from_iter([(
 			event_id,

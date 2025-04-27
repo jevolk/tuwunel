@@ -26,7 +26,8 @@ use tuwunel_core::{
 	Err, Result, debug, debug_info, debug_warn, err, error, info,
 	matrix::{
 		StateKey,
-		pdu::{PduBuilder, PduEvent, gen_event_id, gen_event_id_canonical_json},
+		event::{gen_event_id, gen_event_id_canonical_json},
+		pdu::{PduBuilder, PduEvent},
 		state_res,
 	},
 	result::FlatOk,

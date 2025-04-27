@@ -24,7 +24,7 @@ use ruma::{
 };
 use tuwunel_core::{
 	Err, Error, Result, debug_info, err, error, info, is_equal_to,
-	matrix::pdu::PduBuilder,
+	matrix::{Event, pdu::PduBuilder},
 	utils,
 	utils::{ReadyExt, stream::BroadbandExt},
 	warn,
@@ -934,7 +934,7 @@ pub async fn full_user_deactivate(
 				.state_accessor
 				.room_state_get(room_id, &StateEventType::RoomCreate, "")
 				.await
-				.is_ok_and(|event| event.sender == user_id);
+				.is_ok_and(|event| event.sender() == user_id);
 
 		if user_can_demote_self {
 			let mut power_levels_content = room_power_levels.unwrap_or_default();

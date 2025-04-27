@@ -18,7 +18,10 @@ use ruma::{
 };
 use tuwunel_core::{
 	Err, Result, debug, debug_info, debug_warn, err, info,
-	matrix::pdu::{PduBuilder, PduEvent, gen_event_id},
+	matrix::{
+		event::{Event, gen_event_id},
+		pdu::{PduBuilder, PduEvent},
+	},
 	result::FlatOk,
 	trace,
 	utils::{self, shuffle, stream::IterStream},

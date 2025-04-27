@@ -11,7 +11,7 @@ use ruma::{
 use serde::Deserialize;
 use tuwunel_core::{
 	Result, at, err, implement,
-	matrix::{PduEvent, StateKey},
+	matrix::{Event, StateKey},
 	pair_of,
 	utils::{
 		result::FlatOk,
@@ -128,11 +128,9 @@ pub async fn state_get(
 	shortstatehash: ShortStateHash,
 	event_type: &StateEventType,
 	state_key: &str,
-) -> Result<PduEvent> {
+) -> Result<impl Event> {
 	self.state_get_id(shortstatehash, event_type, state_key)
-		.and_then(|event_id: OwnedEventId| async move {
-			self.services.timeline.get_pdu(&event_id).await
-		})
+		.and_then(async |event_id: OwnedEventId| self.services.timeline.get_pdu(&event_id).await)
 		.await
 }
 
@@ -321,18 +319,16 @@ pub fn state_added(
 pub fn state_full(
 	&self,
 	shortstatehash: ShortStateHash,
-) -> impl Stream<Item = ((StateEventType, StateKey), PduEvent)> + Send + '_ {
+) -> impl Stream<Item = ((StateEventType, StateKey), impl Event)> + Send + '_ {
 	self.state_full_pdus(shortstatehash)
-		.ready_filter_map(|pdu| {
-			Some(((pdu.kind.to_string().into(), pdu.state_key.clone()?), pdu))
-		})
+		.ready_filter_map(|pdu| Some(((pdu.kind().clone().into(), pdu.state_key()?.into()), pdu)))
 }
 
 #[implement(super::Service)]
 pub fn state_full_pdus(
 	&self,
 	shortstatehash: ShortStateHash,
-) -> impl Stream<Item = PduEvent> + Send + '_ {
+) -> impl Stream<Item = impl Event> + Send + '_ {
 	let short_ids = self
 		.state_full_shortids(shortstatehash)
 		.ignore_err()

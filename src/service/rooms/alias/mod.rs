@@ -12,6 +12,7 @@ use ruma::{
 };
 use tuwunel_core::{
 	Err, Result, Server, err,
+	matrix::Event,
 	utils::{ReadyExt, stream::TryIgnore},
 };
 use tuwunel_database::{Deserialized, Ignore, Interfix, Map};
@@ -247,7 +248,7 @@ impl Service {
 			.room_state_get(&room_id, &StateEventType::RoomCreate, "")
 			.await
 		{
-			return Ok(event.sender == user_id);
+			return Ok(event.sender() == user_id);
 		}
 
 		Err!(Database("Room has no m.room.create event"))

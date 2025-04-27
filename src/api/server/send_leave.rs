@@ -11,7 +11,7 @@ use ruma::{
 	},
 };
 use serde_json::value::RawValue as RawJsonValue;
-use tuwunel_core::{Err, Result, err, matrix::pdu::gen_event_id_canonical_json};
+use tuwunel_core::{Err, Result, err, matrix::event::gen_event_id_canonical_json};
 use tuwunel_service::Services;
 
 use crate::Ruma;

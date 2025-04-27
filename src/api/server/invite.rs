@@ -8,8 +8,11 @@ use ruma::{
 	serde::JsonObject,
 };
 use tuwunel_core::{
-	Err, Error, PduEvent, Result, err, matrix::Event, pdu::gen_event_id, utils,
-	utils::hash::sha256, warn,
+	Err, Error, Result, err,
+	matrix::{Event, PduEvent, event::gen_event_id},
+	utils,
+	utils::hash::sha256,
+	warn,
 };
 
 use crate::Ruma;

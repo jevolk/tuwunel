@@ -24,7 +24,9 @@ use ruma::{
 	uint,
 };
 use tuwunel_core::{
-	Err, Event, Result, debug_warn, err, trace,
+	Err, Result, debug_warn, err,
+	matrix::Event,
+	trace,
 	utils::{stream::TryIgnore, string_from_bytes},
 	warn,
 };
@@ -305,11 +307,7 @@ impl Service {
 			.state_accessor
 			.room_state_get(event.room_id(), &StateEventType::RoomPowerLevels, "")
 			.await
-			.and_then(|ev| {
-				serde_json::from_str(ev.content.get()).map_err(|e| {
-					err!(Database(error!("invalid m.room.power_levels event: {e:?}")))
-				})
-			})
+			.and_then(|event| event.get_content())
 			.unwrap_or_default();
 
 		let serialized = event.to_format();

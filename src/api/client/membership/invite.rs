@@ -8,7 +8,7 @@ use ruma::{
 };
 use tuwunel_core::{
 	Err, Result, debug_error, err, info,
-	matrix::pdu::{PduBuilder, gen_event_id_canonical_json},
+	matrix::{event::gen_event_id_canonical_json, pdu::PduBuilder},
 };
 use tuwunel_service::Services;
 

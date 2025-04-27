@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use ruma::{CanonicalJsonObject, EventId};
-use tuwunel_core::{Result, implement, matrix::pdu::PduEvent};
+use tuwunel_core::{Result, implement, matrix::PduEvent};
 use tuwunel_database::{Deserialized, Json, Map};
 
 pub struct Service {
