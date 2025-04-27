@@ -98,10 +98,10 @@ async fn execute(
 
 fn handle_result(method: &Method, uri: &Uri, result: Response) -> Result<Response, StatusCode> {
 	let status = result.status();
+	let code = status.as_u16();
 	let reason = status
 		.canonical_reason()
 		.unwrap_or("Unknown Reason");
-	let code = status.as_u16();
 
 	if status.is_server_error() {
 		error!(method = ?method, uri = ?uri, "{code} {reason}");

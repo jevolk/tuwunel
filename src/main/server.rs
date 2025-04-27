@@ -69,11 +69,10 @@ impl Server {
 			tuwunel_core::version(),
 		);
 
+		let logger = Log { reload: tracing_reload_handle, capture };
+
 		Ok(Arc::new(Self {
-			server: Arc::new(tuwunel_core::Server::new(config, runtime.cloned(), Log {
-				reload: tracing_reload_handle,
-				capture,
-			})),
+			server: Arc::new(tuwunel_core::Server::new(config, runtime.cloned(), logger)),
 
 			services: None.into(),
 
