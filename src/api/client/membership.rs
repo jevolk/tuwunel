@@ -8,7 +8,7 @@ use std::{
 
 use axum::extract::State;
 use axum_client_ip::InsecureClientIp;
-use futures::{FutureExt, StreamExt, TryFutureExt, join, pin_mut};
+use futures::{FutureExt, StreamExt, TryFutureExt, future::join, join, pin_mut};
 use ruma::{
 	CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedRoomId, OwnedServerName,
 	OwnedUserId, RoomId, RoomVersionId, ServerName, UserId,
@@ -47,7 +47,7 @@ use tuwunel_core::{
 	trace,
 	utils::{
 		self, FutureBoolExt,
-		future::ReadyEqExt,
+		future::{ReadyEqExt, TryExtExt},
 		shuffle,
 		stream::{BroadbandExt, IterStream, ReadyExt},
 	},
@@ -940,12 +940,13 @@ pub(crate) async fn joined_members_route(
 			.room_members(&body.room_id)
 			.map(ToOwned::to_owned)
 			.broad_then(|user_id| async move {
-				let member = RoomMember {
-					display_name: services.users.displayname(&user_id).await.ok(),
-					avatar_url: services.users.avatar_url(&user_id).await.ok(),
-				};
+				let (display_name, avatar_url) = join(
+					services.users.displayname(&user_id).ok(),
+					services.users.avatar_url(&user_id).ok(),
+				)
+				.await;
 
-				(user_id, member)
+				(user_id, RoomMember { display_name, avatar_url })
 			})
 			.collect()
 			.await,
