@@ -1305,9 +1305,8 @@ pub struct Config {
 	///
 	/// The authenticated equivalent endpoints are always enabled.
 	///
-	/// Defaults to true for now, but this is highly subject to change, likely
-	/// in the next release.
-	#[serde(default = "true_fn")]
+	/// Defaults to false.
+	#[serde(default)]
 	pub allow_legacy_media: bool,
 
 	#[serde(default = "true_fn")]
