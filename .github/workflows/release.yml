@@ -1,0 +1,74 @@
+name: Release Packages
+
+on:
+  push:
+    branches:
+      - docker
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+    container: ghcr.io/jakguel/tuwunel-builder:1.86
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Cache Cargo registry and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/cargo/registry
+            /usr/local/cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Cargo registry and build
+        uses: corca-ai/local-cache@v2 # actions/cache@v4
+        with:
+          path: |
+            /usr/local/cargo/bin/
+            /usr/local/cargo/registry/index/
+            /usr/local/cargo/registry/cache/
+            /usr/local/cargo/git/db
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Clean up Cargo cache
+        run: |
+          cargo fetch --locked
+
+      - name: Build release profile
+        run: |
+          cargo build --release --all-features
+
+      - name: Prepare release artefacts
+        run: |
+          eval export WORKSPACE=$PWD
+          mkdir -p /release
+          cd $WORKSPACE/target/release
+          find -maxdepth 2 -type d -not -ipath './.fingerprint*' -not -ipath './build*' -not -ipath './deps*' -not -ipath './incremental*' -exec cp -r '{}' '/release' ';'
+          find -maxdepth 2 -type f -not -ipath './.fingerprint*' -not -ipath './build*' -not -ipath './deps*' -not -ipath './incremental*' -exec cp -r '{}' '/release' ';'
+
+      - name: Upload release artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: /release
+
+
+
+#      - name: Build release-debuginfo profile
+#        run: |
+#          cargo build --profile release-debuginfo --all-features
+#
+#          cd ${ GITHUB_WORKSPACE }/target/release-debuginfo
+#          find . -maxdepth 2 -mindepth 2 \( -type f -o -type d \) \
+#          ! -path "./.fingerprint*" ! -path "./build*" ! -path "./deps*" ! -path "./incremental*" \
+#          -exec cp -r '{}' /release-debuginfo ';'

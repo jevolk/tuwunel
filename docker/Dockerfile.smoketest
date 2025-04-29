@@ -3,25 +3,25 @@
 FROM input AS smoketest-version
 
 RUN <<EOF
-	set -eux
-	conduwuit -V
-	version=$(conduwuit -V)
-	/bin/test -n "$version"
+    set -eux
+    tuwunel -V
+    version=$(tuwunel -V)
+    /bin/test -n "$version"
 EOF
 
 
 FROM input AS smoketest-startup
 
-ENV CONDUWUIT_LOG="info"
-ENV CONDUWUIT__DATABASE_PATH="/tmp/smoketest.db"
+ENV TUWUNEL_LOG="info"
+ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
-	set -eux
-	conduwuit \
-		-Otest='["smoke"]' \
-		-Oserver_name=\"localhost\" \
-		-Odatabase_path=\"${CONDUWUIT__DATABASE_PATH}\"
+    set -eux
+    tuwunel \
+        -Otest='["smoke"]' \
+        -Oserver_name=\"localhost\" \
+        -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\"
 
-	rm -rf "${CONDUWUIT__DATABASE_PATH}"
+    rm -rf "${TUWUNEL_DATABASE_PATH}"
 EOF
 
 
@@ -30,21 +30,21 @@ FROM input AS smoketest-valgrind
 WORKDIR /
 COPY --link --from=valgrind . .
 
-ENV CONDUWUIT_LOG="info"
-ENV CONDUWUIT__DATABASE_PATH="/tmp/smoketest.db"
+ENV TUWUNEL_LOG="info"
+ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
-	set -eux
-	valgrind \
-		--leak-check=no \
-		--undef-value-errors=no \
-		--exit-on-first-error=yes \
-		--error-exitcode=1 \
-		conduwuit \
-			-Otest='["smoke"]' \
-			-Oserver_name=\"localhost\" \
-			-Odatabase_path=\"${CONDUWUIT__DATABASE_PATH}\"
+    set -eux
+    valgrind \
+        --leak-check=no \
+        --undef-value-errors=no \
+        --exit-on-first-error=yes \
+        --error-exitcode=1 \
+        tuwunel \
+            -Otest='["smoke"]' \
+            -Oserver_name=\"localhost\" \
+            -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\"
 
-	rm -rf "${CONDUWUIT__DATABASE_PATH}"
+    rm -rf "${TUWUNEL_DATABASE_PATH}"
 EOF
 
 
@@ -53,17 +53,17 @@ FROM input AS smoketest-perf
 WORKDIR /
 COPY --link --from=perf . .
 
-ENV CONDUWUIT_LOG="error"
-ENV CONDUWUIT__DATABASE_PATH="/tmp/smoketest.db"
+ENV TUWUNEL_LOG="error"
+ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
-	set -eux
-	perf stat \
-		-j \
-		-ddd \
-		conduwuit \
-			-Otest='["smoke"]' \
-			-Oserver_name=\"localhost\" \
-			-Odatabase_path=\"${CONDUWUIT__DATABASE_PATH}\"
+    set -eux
+    perf stat \
+        -j \
+        -ddd \
+        tuwunel \
+            -Otest='["smoke"]' \
+            -Oserver_name=\"localhost\" \
+            -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\"
 
-	rm -rf "${CONDUWUIT__DATABASE_PATH}"
+    rm -rf "${TUWUNEL_DATABASE_PATH}"
 EOF

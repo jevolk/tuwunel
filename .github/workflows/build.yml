@@ -1,0 +1,85 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      bake:
+        type: string
+        required: false
+        description: JSON Object of inputs passed to the environment
+
+concurrency:
+  group: ${{github.ref}}
+  cancel-in-progress: true
+
+env:
+  docker_id: ${{vars.DOCKER_ID}}
+  inputs: ${{github.event.inputs}}
+
+jobs:
+  systems:
+    name: Base System Images
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["systems"]'
+      cargo_profiles: ${{vars.CARGO_PROFILES || '["test"]'}}
+      docker_id: ${{github.env.docker_id}}
+      feat_sets: ${{vars.FEAT_SETS || '["none"]'}}
+      machines: ${{vars.MACHINES || '["x86_64"]'}}
+      rust_targets: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS || '["nightly"]'}}
+      sys_names: ${{vars.SYS_NAMES || '["debian"]'}}
+      sys_targets: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
+      sys_versions: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
+
+  buildsys:
+    name: Build System Images
+    uses: ./.github/workflows/bake.yml
+    needs: [systems]
+    with:
+      bake_targets: '["buildsys"]'
+      cargo_profiles: ${{vars.CARGO_PROFILES || '["test"]'}}
+      docker_id: ${{github.env.docker_id}}
+      feat_sets: ${{vars.FEAT_SETS || '["none"]'}}
+      machines: ${{vars.MACHINES || '["x86_64"]'}}
+      rust_targets: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS || '["nightly"]'}}
+      sys_names: ${{vars.SYS_NAMES || '["debian"]'}}
+      sys_targets: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
+      sys_versions: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
+
+  sources:
+    name: Source Acquision
+    uses: ./.github/workflows/bake.yml
+    needs: [buildsys]
+    with:
+      bake_targets: '["sources"]'
+      cargo_profiles: ${{vars.CARGO_PROFILES || '["test"]'}}
+      docker_id: ${{github.env.docker_id}}
+      feat_sets: ${{vars.FEAT_SETS || '["none"]'}}
+      machines: ${{vars.MACHINES || '["x86_64"]'}}
+      rust_targets: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS || '["nightly"]'}}
+      sys_names: ${{vars.SYS_NAMES || '["debian"]'}}
+      sys_targets: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
+      sys_versions: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
+
+  rocksdb:
+    name: Build RocksDB
+    uses: ./.github/workflows/bake.yml
+    needs: [sources]
+    with:
+      bake_targets: '["rocksdb"]'
+      cargo_profiles: ${{vars.CARGO_PROFILES || '["test"]'}}
+      docker_id: ${{github.env.docker_id}}
+      feat_sets: ${{vars.FEAT_SETS || '["none"]'}}
+      machines: ${{vars.MACHINES || '["x86_64"]'}}
+      rust_targets: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS || '["nightly"]'}}
+      sys_names: ${{vars.SYS_NAMES || '["debian"]'}}
+      sys_targets: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
+      sys_versions: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
