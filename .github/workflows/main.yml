@@ -17,14 +17,9 @@ env:
   inputs: ${{github.event.inputs}}
 
 jobs:
-  base:
-    name: Base
-    uses: ./.github/workflows/base.yml
-
   deps:
     name: Deps
     uses: ./.github/workflows/deps.yml
-    needs: [base]
 
   lint:
     name: Lint

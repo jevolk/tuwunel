@@ -5,49 +5,52 @@ on:
     inputs:
       bake_targets:
         type: string
-        required: false
         default: '["default"]'
         description: Bake targets
       cargo_profiles:
         type: string
-        required: false
-        default: '["test", "bench"]'
+        default: ${{vars.CARGO_PROFILES || '["test", "bench", "release"]'}}
         description: Cargo profiles
       feat_sets:
         type: string
-        required: false
-        default: '["none", "default", "all"]'
+        default: ${{vars.FEAT_SETS || '["none", "default", "all"]'}}
         description: Cargo feature groups
       machines:
         type: string
-        required: false
-        default: '["x86_64"]'
+        default: ${{vars.MACHINES || '["x86_64"]'}}
         description: Hardware platform vector
       rust_targets:
         type: string
-        required: false
-        default: '["x86_64-unknown-linux-gnu"]'
+        default: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
         description: Rust targets
       rust_toolchains:
         type: string
-        required: false
-        default: '["nightly", "stable"]'
+        default: ${{vars.RUST_TOOLCHAINS || '["nightly", "stable"]'}}
         description: Rust toolchains
       sys_names:
         type: string
-        required: false
-        default: '["debian"]'
+        default: ${{vars.SYS_NAMES || '["debian"]'}}
         description: System names
       sys_targets:
         type: string
-        required: false
-        default: '["x86_64-linux-gnu"]'
+        default: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
         description: System targets
       sys_versions:
         type: string
-        required: false
-        default: '["testing-slim"]'
+        default: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
         description: System versions
+      verbose_env:
+        type: string
+        default: ${{vars.CI_VERBOSE_ENV || false}}
+        description: Print the bake environment.
+      silent_bake:
+        type: string
+        default: ${{vars.CI_SILENT_BAKE || false}}
+        description: Print as little as possible.
+      print_bake:
+        type: string
+        default: ${{vars.CI_PRINT_BAKE || false}}
+        description: Print the computed receipe.
 
 jobs:
   bake:
@@ -79,6 +82,9 @@ jobs:
         sys_name: ${{matrix.sys_name}}
         sys_target: ${{matrix.sys_target}}
         sys_version: ${{matrix.sys_version}}
+        CI_VERBOSE_ENV: ${{inputs.verbose_env}}
+        CI_SILENT_BAKE: ${{inputs.silent_bake}}
+        CI_PRINT_BAKE: ${{inputs.print_bake}}
 
       run: |
         docker/bake.sh ${{matrix.bake_target}}

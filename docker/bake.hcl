@@ -4,7 +4,7 @@ variable "repo" {}
 cargo_feat_sets = {
     none = ""
     default = "brotli_compression,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,media_thumbnail,release_max_log_level,systemd,url_preview,zstd_compression"
-    all = "blurhashing,brotli_compression,tuwunel_mods,console,default,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,url_preview,zstd_compression"
+    all = "blurhashing,brotli_compression,tuwunel_mods,console,default,direct_tls,element_hacks,gzip_compression,hardened_malloc,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,url_preview,zstd_compression"
 }
 
 variable "cargo_features_always" {
@@ -708,7 +708,7 @@ target "audit" {
     tags = [
         elem_tag("audit", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-	target = "audit"
+    target = "audit"
     dockerfile = "docker/Dockerfile.cargo.audit"
     matrix = cargo_rust_feat_sys
     inherits = [
@@ -1018,6 +1018,10 @@ target "ingredients" {
             cargo_feat_sets[feat_set],
             cargo_features_always,
         ])
+        cargo_spec_features = (
+            feat_set == "all"?
+                "--all-features": "--no-default-features"
+        )
         CARGO_TARGET_DIR = "/usr/src/tuwunel/target/${sys_name}/${sys_version}/${rust_toolchain}"
         CARGO_BUILD_RUSTFLAGS = (
             rust_toolchain == "nightly"?
@@ -1135,10 +1139,17 @@ target "kitchen" {
     }
     args = {
         packages = join(" ", [
-            "bzip2",
-            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")? "liburing-dev": "",
-            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? "libzstd-dev": "",
-            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")? "libjemalloc-dev": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
+                "liburing-dev": "",
+
+            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
+                "libzstd-dev": "",
+
+            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")?
+                "libjemalloc-dev": "",
+
+            contains(split(",", cargo_feat_sets[feat_set]), "hardened_malloc")?
+                "g++": "",
         ])
     }
 }

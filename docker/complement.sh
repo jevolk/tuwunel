@@ -1,8 +1,11 @@
 #!/bin/bash
 set -eo pipefail
 
-CI="${CI:-true}"
 BASEDIR=$(dirname "$0")
+
+CI="${CI:-false}"
+CI_VERBOSE="${CI_VERBOSE_ENV:-false}"
+CI_VERBOSE_ENV="${CI_VERBOSE_ENV:-$CI_VERBOSE}"
 
 default_cargo_profile="test"
 default_feat_set="all"
@@ -34,11 +37,18 @@ sock="/var/run/docker.sock"
 arg="--rm --name $name -v $sock:$sock --network=host $tester_image ${testee_image}"
 
 trap 'set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' ERR
-date
-env
+
+if test "$CI_VERBOSE_ENV" = "true"; then
+	date
+	env
+fi
+
 set -x -e
 cid=$(docker run -d $arg)
 set +x
+
 trap 'docker container stop $cid; set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' INT
+
+docker logs -f "$cid"
 docker wait "$cid" 2>/dev/null
 echo -e "\033[1;42;30mPASS\033[0m"

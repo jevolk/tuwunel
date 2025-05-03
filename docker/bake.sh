@@ -1,8 +1,13 @@
 #!/bin/bash
 set -eo pipefail
 
-CI="${CI:-true}"
 BASEDIR=$(dirname "$0")
+
+CI="${CI:-false}"
+CI_VERBOSE="${CI_VERBOSE:-false}"
+CI_VERBOSE_ENV="${CI_VERBOSE_ENV:-$CI_VERBOSE}"
+CI_SILENT_BAKE="${CI_SILENT_BAKE:-false}"
+CI_PRINT_BAKE="${CI_PRINT_BAKE:-$CI_VERBOSE}"
 
 default_cargo_profiles='["test", "bench"]'
 default_feat_sets='["none", "default", "all"]'
@@ -52,6 +57,7 @@ sys_versions="${env_sys_versions:-$default_sys_versions}"
 
 runner_name=$(echo $RUNNER_NAME | cut -d"." -f1)
 runner_num=$(echo $RUNNER_NAME | cut -d"." -f2)
+builder_name="owo"
 rocksdb_opt_level=3
 rocksdb_portable=1
 git_checkout="HEAD"
@@ -72,10 +78,9 @@ if test "$CI" = "true"; then
     export BUILDKIT_PROGRESS="plain"
 fi
 
-uwu_docker_build_args=""
-args="$uwu_docker_build_args"
-args="$args --builder owo"
-args="$args --set *.platform=${sys_platform}"
+args=""
+args="$args --builder ${builder_name}"
+#args="$args --set *.platform=${sys_platform}"
 
 if test ! -z "$runner_num"; then
     #cpu_num=$(expr $runner_num % $(nproc))
@@ -89,12 +94,19 @@ else
     :
 fi
 
-trap 'set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' ERR
-env
-date
+if test "$CI_SILENT_BAKE" = "true"; then
+	args="$args --progress=quiet"
+fi
 
 arg="$args -f $BASEDIR/bake.hcl"
-if test "$BUILDKIT_PROGRESS" = "plain"; then
+trap 'set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' ERR
+
+if test "$CI_VERBOSE_ENV" = "true"; then
+	date
+	env
+fi
+
+if test "$CI_PRINT_BAKE" = "true"; then
     docker buildx bake --print $arg $bake_target
 fi
 
@@ -104,8 +116,6 @@ fi
 
 trap '' ERR
 set -ux
-
 docker buildx bake $arg $bake_target
-
 set +x
 echo -e "\033[1;42;30mPASS\033[0m"

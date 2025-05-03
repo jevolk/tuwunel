@@ -9,14 +9,6 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["install"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}
 
   complement:
     name: Complement Testee
@@ -24,11 +16,3 @@ jobs:
     needs: [install]
     with:
       bake_targets: '["complement-testee"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}

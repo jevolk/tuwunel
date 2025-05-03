@@ -5,7 +5,6 @@ ARG var_cache
 ARG var_lib_apt
 ARG packages
 
-ENV DEBIAN_FRONTEND="noninteractive"
 ENV packages="\
 bzip2 \
 ca-certificates \

@@ -9,6 +9,7 @@ ARG CARGO_TARGET
 ARG CARGO_TARGET_DIR
 ARG cargo_profile
 ARG cargo_features
+ARG cargo_spec_features
 ARG cook_args
 ARG git_checkout
 
@@ -29,7 +30,7 @@ RUN \
         cargo chef cook ${cook_args} \
             --frozen \
             --workspace \
-            --no-default-features \
+            "${cargo_spec_features}" \
             --features "${cargo_features}" \
             --profile "${cargo_profile}" \
             --target "${CARGO_TARGET}" \

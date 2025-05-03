@@ -1,49 +1,46 @@
-name: Dependency Build
+name: Dependencies
 
 on:
   workflow_call:
 
 jobs:
+  systems:
+    name: System
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["systems"]'
+
+  buildsys:
+    name: Builder
+    needs: [systems]
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["buildsys"]'
+
+  tester:
+    name: Tester
+    needs: [systems]
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["complement-tester"]'
+
   sources:
     name: Acquire
+    needs: [buildsys]
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["sources"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}
 
   rocksdb:
     name: RocksDB
-    uses: ./.github/workflows/bake.yml
     needs: [sources]
+    uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["rocksdb"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}
 
   deps:
     name: Build
-    uses: ./.github/workflows/bake.yml
     needs: [rocksdb]
+    uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["deps-clippy", "deps-build-tests", "deps-build-bins"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}

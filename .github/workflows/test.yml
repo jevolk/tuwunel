@@ -1,7 +1,40 @@
-name: Test
+name: Testing
 
 on:
   workflow_call:
+    inputs:
+      cargo_profiles:
+        type: string
+        default: ${{vars.CARGO_PROFILES || '["test", "bench", "release"]'}}
+        description: Cargo profiles
+      feat_sets:
+        type: string
+        default: ${{vars.FEAT_SETS || '["none", "default", "all"]'}}
+        description: Cargo feature groups
+      machines:
+        type: string
+        default: ${{vars.MACHINES || '["x86_64"]'}}
+        description: Hardware platform vector
+      rust_targets:
+        type: string
+        default: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
+        description: Rust targets
+      rust_toolchains:
+        type: string
+        default: ${{vars.RUST_TOOLCHAINS || '["nightly", "stable"]'}}
+        description: Rust toolchains
+      sys_names:
+        type: string
+        default: ${{vars.SYS_NAMES || '["debian"]'}}
+        description: System names
+      sys_targets:
+        type: string
+        default: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
+        description: System targets
+      sys_versions:
+        type: string
+        default: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
+        description: System versions
 
 jobs:
   unit:
@@ -9,28 +42,15 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["tests-unit"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}
+      cargo_profiles: '["test", "bench"]'
+      feat_sets: '["all"]'
+      rust_toolchains: '["nightly"]'
 
   smoke:
     name: Smoke
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["tests-smoke"]'
-      cargo_profiles: ${{vars.CARGO_PROFILES}}
-      feat_sets: ${{vars.FEAT_SETS}}
-      machines: ${{vars.MACHINES}}
-      rust_targets: ${{vars.RUST_TARGETS}}
-      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
-      sys_names: ${{vars.SYS_NAMES}}
-      sys_targets: ${{vars.SYS_TARGETS}}
-      sys_versions: ${{vars.SYS_VERSIONS}}
 
   complement:
     name: Compliance
@@ -43,12 +63,12 @@ jobs:
       matrix:
         cargo_profile: ${{fromJSON('["test"]')}}
         feat_set: ${{fromJSON('["all"]')}}
-        machine: ${{fromJSON(vars.MACHINES)}}
-        rust_target: ${{fromJSON(vars.RUST_TARGETS)}}
+        machine: ${{fromJSON(inputs.machines)}}
+        rust_target: ${{fromJSON(inputs.rust_targets)}}
         rust_toolchain: ${{fromJSON('["nightly"]')}}
-        sys_name: ${{fromJSON(vars.SYS_NAMES)}}
-        sys_target: ${{fromJSON(vars.SYS_TARGETS)}}
-        sys_version: ${{fromJSON(vars.SYS_VERSIONS)}}
+        sys_name: ${{fromJSON(inputs.sys_names)}}
+        sys_target: ${{fromJSON(inputs.sys_targets)}}
+        sys_version: ${{fromJSON(inputs.sys_versions)}}
 
     steps:
     - name: Complement
