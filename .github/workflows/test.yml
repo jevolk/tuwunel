@@ -42,9 +42,9 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["tests-unit"]'
-      cargo_profiles: '["test", "bench"]'
       feat_sets: '["all"]'
       rust_toolchains: '["nightly"]'
+      excludes: '[{"cargo_profiles": "release"}]'
 
   smoke:
     name: Smoke

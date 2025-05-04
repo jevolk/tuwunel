@@ -6,10 +6,10 @@ on:
       bake_targets:
         type: string
         default: '["default"]'
-        description: Bake targets
+        description: Bake Matrix
       cargo_profiles:
         type: string
-        default: ${{vars.CARGO_PROFILES || '["test", "bench", "release"]'}}
+        default: ${{vars.CARGO_PROFILES || '["test", "release"]'}}
         description: Cargo profiles
       feat_sets:
         type: string
@@ -39,6 +39,14 @@ on:
         type: string
         default: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
         description: System versions
+      includes:
+        type: string
+        default: '[]'
+        description: Matrix inclusions
+      excludes:
+        type: string
+        default: '[]'
+        description: Matrix exclusions
       verbose_env:
         type: string
         default: ${{vars.CI_VERBOSE_ENV || false}}
@@ -59,6 +67,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        include: ${{fromJSON(inputs.includes)}}
+        exclude: ${{fromJSON(inputs.excludes)}}
         bake_target: ${{fromJSON(inputs.bake_targets)}}
         cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
         feat_set: ${{fromJSON(inputs.feat_sets)}}

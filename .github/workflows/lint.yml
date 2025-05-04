@@ -9,27 +9,30 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["fmt"]'
-      cargo_profiles: '["test"]'
-      feat_sets: '["none"]'
-      rust_toolchains: '["nightly"]'
+      cargo_profiles: '[]'
+      feat_sets: '[]'
+      rust_toolchains: '[]'
+      includes: '[{"cargo_profiles": "test", "feat_sets": "none", "rust_toolchains": "nightly"}]'
 
   audit:
     name: Audit
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["audit"]'
-      cargo_profiles: '["test"]'
-      feat_sets: '["none"]'
-      rust_toolchains: '["nightly"]'
+      cargo_profiles: '[]'
+      feat_sets: '[]'
+      rust_toolchains: '[]'
+      includes: '[{"cargo_profiles": "test", "feat_sets": "none", "rust_toolchains": "nightly"}]'
 
   lychee:
     name: Lychee
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["lychee"]'
-      cargo_profiles: '["test"]'
-      feat_sets: '["none"]'
-      rust_toolchains: '["nightly"]'
+      cargo_profiles: '[]'
+      feat_sets: '[]'
+      rust_toolchains: '[]'
+      includes: '[{"cargo_profiles": "test", "feat_sets": "none", "rust_toolchains": "nightly"}]'
 
   clippy:
     name: Clippy
@@ -43,5 +46,6 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["docs"]'
-      cargo_profiles: '["test"]'
-      rust_toolchains: '["nightly"]'
+      cargo_profiles: '[]'
+      rust_toolchains: '[]'
+      includes: '[{"cargo_profiles": "test", "rust_toolchains": "nightly"}]'
