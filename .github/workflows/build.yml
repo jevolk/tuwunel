@@ -23,6 +23,6 @@ jobs:
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["pkg-deb"]'
-      cargo_profiles: '["test", "bench"]'
       feat_sets: '["all"]'
+      cargo_profiles: '["release"]'
       rust_toolchains: '["stable"]'

@@ -62,7 +62,7 @@ on:
 
 jobs:
   bake:
-    name: Bake
+    name: Layer
     runs-on: ${{matrix.machine}}
     strategy:
       fail-fast: false
@@ -70,18 +70,18 @@ jobs:
         include: ${{fromJSON(inputs.includes)}}
         exclude: ${{fromJSON(inputs.excludes)}}
         bake_target: ${{fromJSON(inputs.bake_targets)}}
-        cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
         feat_set: ${{fromJSON(inputs.feat_sets)}}
-        machine: ${{fromJSON(inputs.machines)}}
-        rust_target: ${{fromJSON(inputs.rust_targets)}}
+        cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
         rust_toolchain: ${{fromJSON(inputs.rust_toolchains)}}
         sys_name: ${{fromJSON(inputs.sys_names)}}
-        sys_target: ${{fromJSON(inputs.sys_targets)}}
         sys_version: ${{fromJSON(inputs.sys_versions)}}
+        rust_target: ${{fromJSON(inputs.rust_targets)}}
+        sys_target: ${{fromJSON(inputs.sys_targets)}}
+        machine: ${{fromJSON(inputs.machines)}}
 
     steps:
     - uses: actions/checkout@v3
-    - name: Execute
+    - name: Bake
       env:
         bake_target: ${{matrix.bake_target}}
         cargo_profile: ${{matrix.cargo_profile}}

@@ -39,6 +39,7 @@ jobs:
       bake_targets: '["rocksdb"]'
 
   deps:
+    if: false
     name: Build
     needs: [rocksdb]
     uses: ./.github/workflows/bake.yml
