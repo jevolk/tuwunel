@@ -35,3 +35,8 @@ jobs:
     name: Test
     uses: ./.github/workflows/test.yml
     needs: [build]
+
+  release:
+    name: Release
+    uses: ./.github/workflows/release.yml
+    needs: [test]

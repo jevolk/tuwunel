@@ -16,3 +16,13 @@ jobs:
     needs: [install]
     with:
       bake_targets: '["complement-testee"]'
+
+  pkgdeb:
+    if: false
+    name: Pkg Deb
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["pkg-deb"]'
+      cargo_profiles: '["test", "bench"]'
+      feat_sets: '["all"]'
+      rust_toolchains: '["stable"]'

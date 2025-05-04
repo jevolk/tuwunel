@@ -1,0 +1,17 @@
+name: Release
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    name: Github
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/docker' }}
+    steps:
+    - name: Release
+      env:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      run: |
+        echo "OK"

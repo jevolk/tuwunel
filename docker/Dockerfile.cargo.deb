@@ -1,0 +1,35 @@
+# syntax = docker/dockerfile:1.11-labs
+
+FROM input AS debuild
+ARG sys_target
+ARG rust_toolchain
+ARG RUSTUP_HOME
+ARG CARGO_HOME
+ARG CARGO_TARGET
+ARG CARGO_TARGET_DIR
+ARG cargo_profile
+ARG cargo_features
+ARG cargo_spec_features
+ARG deb_args
+
+WORKDIR /usr/src/tuwunel
+RUN \
+--mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
+--mount=type=cache,dst=${CARGO_HOME},sharing=locked \
+--mount=type=cache,dst=${CARGO_TARGET_DIR},sharing=shared \
+--mount=type=bind,dst=${CARGO_TARGET_DIR}/debian,src=. \
+<<EOF
+    env
+    set -eux
+    rustup run ${rust_toolchain} \
+        cargo deb \
+            --frozen \
+            --no-build \
+            "${cargo_spec_features}" \
+            --features "${cargo_features}" \
+            --profile "${cargo_profile}" \
+            --target "${CARGO_TARGET}" \
+            --manifest-path Cargo.toml \
+            --multiarch same \
+            ${deb_args}
+EOF

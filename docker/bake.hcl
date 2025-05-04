@@ -466,6 +466,36 @@ target "installer" {
 }
 
 #
+# Package
+#
+
+group "package" {
+    targets = [
+        "pkg-deb",
+    ]
+}
+
+target "pkg-deb" {
+    name = elem("pkg-deb", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("pkg-deb", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+    ]
+    target = "debuild"
+    dockerfile = "docker/Dockerfile.cargo.deb"
+    labels = {
+        "_group" = "package"
+        "_cache" = "trunk"
+    }
+    matrix = cargo_rust_feat_sys
+    inherits = [
+        elem("build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    ]
+    contexts = {
+        input = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    }
+}
+
+#
 # Unit tests
 #
 
