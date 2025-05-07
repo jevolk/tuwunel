@@ -24,7 +24,6 @@ RUN \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_TARGET_DIR},sharing=locked \
 <<EOF
-    env
     set -eux
     rustup run ${rust_toolchain} \
         cargo chef cook ${cook_args} \

@@ -30,7 +30,7 @@ systemd-units = { unit-name = "tuwunel", start = false }
 assets = [
 	["../../debian/README.md", "usr/share/doc/tuwunel/README.Debian", "644"],
 	["../../README.md", "usr/share/doc/tuwunel/", "644"],
-	["../../target/release/tuwunel", "usr/sbin/tuwunel", "755"],
+	["target/release/tuwunel", "usr/sbin/tuwunel", "755"],
 	["../../tuwunel-example.toml", "etc/tuwunel/tuwunel.toml", "640"],
 ]
 

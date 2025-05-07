@@ -9,9 +9,9 @@ CI_VERBOSE_ENV="${CI_VERBOSE_ENV:-$CI_VERBOSE}"
 CI_SILENT_BAKE="${CI_SILENT_BAKE:-false}"
 CI_PRINT_BAKE="${CI_PRINT_BAKE:-$CI_VERBOSE}"
 
-default_cargo_profiles='["test", "bench"]'
-default_feat_sets='["none", "default", "all"]'
-default_rust_toolchains='["nightly", "stable"]'
+default_cargo_profiles='["release"]'
+default_feat_sets='["all"]'
+default_rust_toolchains='["stable"]'
 default_rust_targets='["x86_64-unknown-linux-gnu"]'
 default_sys_names='["debian"]'
 default_sys_targets='["x86_64-linux-gnu"]'
@@ -79,6 +79,7 @@ if test "$CI" = "true"; then
 fi
 
 args=""
+args="$args --allow=network.host"
 args="$args --builder ${builder_name}"
 #args="$args --set *.platform=${sys_platform}"
 

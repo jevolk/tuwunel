@@ -12,10 +12,10 @@ OCI images for tuwunel are available in the registries listed below.
 | Registry        | Image                                                           | Size                          | Notes                  |
 | --------------- | --------------------------------------------------------------- | ----------------------------- | ---------------------- |
 | GitHub Registry | [ghcr.io/jevolk/tuwunel:latest][gh] | ![Image Size][shield-latest]  | Stable latest tagged image.          |
-| GitLab Registry | [registry.gitlab.com/tuwunel/tuwunel:latest][gl] | ![Image Size][shield-latest]  | Stable latest tagged image.          |
+| GitLab Registry | [registry.gitlab.com/jevolk/tuwunel:latest][gl] | ![Image Size][shield-latest]  | Stable latest tagged image.          |
 | Docker Hub      | [docker.io/jevolk/tuwunel:latest][dh]             | ![Image Size][shield-latest]  | Stable latest tagged image.          |
 | GitHub Registry | [ghcr.io/jevolk/tuwunel:main][gh]   | ![Image Size][shield-main]    | Stable main branch.   |
-| GitLab Registry | [registry.gitlab.com/tuwunel/tuwunel:main][gl]   | ![Image Size][shield-main]    | Stable main branch.   |
+| GitLab Registry | [registry.gitlab.com/jevolk/tuwunel:main][gl]   | ![Image Size][shield-main]    | Stable main branch.   |
 | Docker Hub      | [docker.io/jevolk/tuwunel:main][dh]               | ![Image Size][shield-main]    | Stable main branch.   |
 
 [dh]: https://hub.docker.com/r/jevolk/tuwunel
@@ -42,8 +42,8 @@ When you have the image you can simply run it with
 ```bash
 docker run -d -p 8448:6167 \
     -v db:/var/lib/tuwunel/ \
-    -e tuwunel_SERVER_NAME="your.server.name" \
-    -e tuwunel_ALLOW_REGISTRATION=false \
+    -e TUWUNEL_SERVER_NAME="your.server.name" \
+    -e TUWUNEL_ALLOW_REGISTRATION=false \
     --name tuwunel $LINK
 ```
 

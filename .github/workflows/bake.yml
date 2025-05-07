@@ -6,39 +6,39 @@ on:
       bake_targets:
         type: string
         default: '["default"]'
-        description: Bake targets
+        description: Bake Matrix
       cargo_profiles:
         type: string
-        default: ${{vars.CARGO_PROFILES || '["test", "bench", "release"]'}}
         description: Cargo profiles
       feat_sets:
         type: string
-        default: ${{vars.FEAT_SETS || '["none", "default", "all"]'}}
         description: Cargo feature groups
-      machines:
-        type: string
-        default: ${{vars.MACHINES || '["x86_64"]'}}
-        description: Hardware platform vector
       rust_targets:
         type: string
-        default: ${{vars.RUST_TARGETS || '["x86_64-unknown-linux-gnu"]'}}
         description: Rust targets
       rust_toolchains:
         type: string
-        default: ${{vars.RUST_TOOLCHAINS || '["nightly", "stable"]'}}
         description: Rust toolchains
       sys_names:
         type: string
-        default: ${{vars.SYS_NAMES || '["debian"]'}}
         description: System names
       sys_targets:
         type: string
-        default: ${{vars.SYS_TARGETS || '["x86_64-linux-gnu"]'}}
         description: System targets
       sys_versions:
         type: string
-        default: ${{vars.SYS_VERSIONS || '["testing-slim"]'}}
         description: System versions
+      machines:
+        type: string
+        description: Hardware platforms
+      excludes:
+        type: string
+        default: '[]'
+        description: Matrix exclusions
+      includes:
+        type: string
+        default: '[]'
+        description: Matrix inclusions
       verbose_env:
         type: string
         default: ${{vars.CI_VERBOSE_ENV || false}}
@@ -54,34 +54,38 @@ on:
 
 jobs:
   bake:
-    name: Bake
+    name: ${{matrix.bake_target}} ${{matrix.cargo_profile}} ${{matrix.rust_toolchain}} ${{matrix.feat_set}} ${{matrix.sys_name}} ${{matrix.sys_version}} ${{matrix.sys_target}}
     runs-on: ${{matrix.machine}}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
+        exclude: ${{fromJSON(inputs.excludes)}}
+        include: ${{fromJSON(inputs.includes)}}
         bake_target: ${{fromJSON(inputs.bake_targets)}}
         cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
         feat_set: ${{fromJSON(inputs.feat_sets)}}
-        machine: ${{fromJSON(inputs.machines)}}
-        rust_target: ${{fromJSON(inputs.rust_targets)}}
         rust_toolchain: ${{fromJSON(inputs.rust_toolchains)}}
         sys_name: ${{fromJSON(inputs.sys_names)}}
-        sys_target: ${{fromJSON(inputs.sys_targets)}}
         sys_version: ${{fromJSON(inputs.sys_versions)}}
+        rust_target: ${{fromJSON(inputs.rust_targets)}}
+        sys_target: ${{fromJSON(inputs.sys_targets)}}
+        machine: ${{fromJSON(inputs.machines)}}
 
     steps:
     - uses: actions/checkout@v3
-    - name: Execute
+    - name: Bake
       env:
         bake_target: ${{matrix.bake_target}}
         cargo_profile: ${{matrix.cargo_profile}}
-        feat_set: ${{matrix.feat_set}}
-        machine: ${{matrix.machine}}
-        rust_target: ${{matrix.rust_target}}
         rust_toolchain: ${{matrix.rust_toolchain}}
+        rust_target: ${{matrix.rust_target}}
+        feat_set: ${{matrix.feat_set}}
         sys_name: ${{matrix.sys_name}}
-        sys_target: ${{matrix.sys_target}}
         sys_version: ${{matrix.sys_version}}
+        sys_target: ${{matrix.sys_target}}
+        machine: ${{matrix.machine}}
+        acct: ${{github.actor}}
+        repo: ${{github.repository}}
         CI_VERBOSE_ENV: ${{inputs.verbose_env}}
         CI_SILENT_BAKE: ${{inputs.silent_bake}}
         CI_PRINT_BAKE: ${{inputs.print_bake}}

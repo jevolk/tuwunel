@@ -1,10 +1,11 @@
-name: Dependencies
+name: Package
 
 on:
   workflow_call:
     inputs:
       cargo_profiles:
         type: string
+        default: '["release"]'
         description: Cargo profiles
       feat_sets:
         type: string
@@ -35,30 +36,13 @@ on:
         type: string
         default: '[]'
         description: Matrix inclusions
-      show_systems:
-        type: boolean
-        default: true
-        description: Pre-build systems dependency targets
-      show_sources:
-        type: boolean
-        default: true
-        description: Pre-build sources dependency targets
-      show_rocksdb:
-        type: boolean
-        default: true
-        description: Pre-build rocksdb dependency targets
-      show_cargo:
-        type: boolean
-        default: true
-        description: Pre-build cargo dependency targets
 
 jobs:
-  systems:
-    if: inputs.show_systems
-    name: System
+  deb:
+    name: Deb
     uses: ./.github/workflows/bake.yml
     with:
-      bake_targets: '["systems"]'
+      bake_targets: '["pkg-deb-install"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
@@ -70,13 +54,12 @@ jobs:
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
 
-  buildsys:
-    if: inputs.show_systems
-    name: Builder
-    needs: [systems]
+  rpm:
+    if: false
+    name: RPM
     uses: ./.github/workflows/bake.yml
     with:
-      bake_targets: '["buildsys"]'
+      bake_targets: '["pkg-rpm-install"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
@@ -88,49 +71,12 @@ jobs:
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
 
-  sources:
-    if: inputs.show_sources
-    name: Acquire
-    needs: [buildsys]
+  dockerhub:
+    if: ${{github.ref == 'refs/heads/main'}}
+    name: DockerHub
     uses: ./.github/workflows/bake.yml
     with:
-      bake_targets: '["sources"]'
-      cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: ${{inputs.feat_sets}}
-      rust_toolchains: ${{inputs.rust_toolchains}}
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
-
-  rocksdb:
-    if: inputs.show_rocksdb
-    name: RocksDB
-    needs: [sources]
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["rocksdb"]'
-      cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: ${{inputs.feat_sets}}
-      rust_toolchains: ${{inputs.rust_toolchains}}
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
-
-  deps:
-    if: inputs.show_cargo
-    name: Build
-    needs: [rocksdb]
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["deps-clippy", "deps-build-tests", "deps-build-bins"]'
+      bake_targets: '["dockerhub"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}

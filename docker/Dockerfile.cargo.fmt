@@ -12,7 +12,6 @@ RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 <<EOF
-    env
     set -eux
     rustup run ${rust_toolchain} \
         cargo fmt \

@@ -12,7 +12,6 @@ RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 <<EOF
-    env
     set -eux
 
     url="https://static.rust-lang.org/rustup/archive/${rustup_version}/${CARGO_TARGET}/rustup-init"
@@ -34,7 +33,6 @@ RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 <<EOF
-    env
     set -eux
     rustup component add \
         --toolchain ${rust_toolchain} \
@@ -55,7 +53,6 @@ RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 <<EOF
-    env
     set -eux
     rustup run --install ${rust_toolchain} \
         cargo install \
@@ -64,6 +61,8 @@ RUN \
             cargo-chef \
             cargo-audit \
             cargo-deb \
+            cargo-arch \
+            cargo-generate-rpm \
             lychee \
             ;
 EOF

@@ -6,7 +6,6 @@ ARG git_checkout
 ADD --keep-git-dir . /usr/src/tuwunel
 WORKDIR /usr/src/tuwunel
 RUN <<EOF
-    env
     set -eux
     git reset \
         --hard \
@@ -31,7 +30,6 @@ RUN \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_TARGET_DIR},sharing=locked \
 <<EOF
-    env
     set -eux
     git submodule update \
         --remote \
@@ -60,7 +58,6 @@ RUN \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_TARGET_DIR},sharing=locked \
 <<EOF
-    env
     set -euxo pipefail
     rustup run ${rust_toolchain} \
         cargo chef prepare \

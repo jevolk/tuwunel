@@ -18,20 +18,61 @@ env:
 
 jobs:
   deps:
+    if: ${{vars.CI_VERBOSE_DEPS || false}}
     name: Deps
     uses: ./.github/workflows/deps.yml
+    with:
+      cargo_profiles: ${{vars.CARGO_PROFILES}}
+      feat_sets: ${{vars.FEAT_SETS}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
+      rust_targets: ${{vars.RUST_TARGETS}}
+      sys_names: ${{vars.SYS_NAMES}}
+      sys_targets: ${{vars.sys_TARGETS}}
+      sys_versions: ${{vars.SYS_VERSIONS}}
+      machines: ${{vars.MACHINES}}
 
   lint:
+    if: ${{ always() && !cancelled() }}
     name: Lint
+    needs: [deps]
     uses: ./.github/workflows/lint.yml
-    needs: [deps]
-
-  build:
-    name: Build
-    uses: ./.github/workflows/build.yml
-    needs: [deps]
+    with:
+      cargo_profiles: ${{vars.CARGO_PROFILES}}
+      feat_sets: ${{vars.FEAT_SETS}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
+      rust_targets: ${{vars.RUST_TARGETS}}
+      sys_names: ${{vars.SYS_NAMES}}
+      sys_targets: ${{vars.sys_TARGETS}}
+      sys_versions: ${{vars.SYS_VERSIONS}}
+      machines: ${{vars.MACHINES}}
 
   test:
+    if: ${{ always() && !cancelled() }}
     name: Test
+    needs: [lint]
     uses: ./.github/workflows/test.yml
-    needs: [build]
+    with:
+      cargo_profiles: ${{vars.CARGO_PROFILES}}
+      feat_sets: ${{vars.FEAT_SETS}}
+      rust_toolchains: ${{vars.RUST_TOOLCHAINS}}
+      rust_targets: ${{vars.RUST_TARGETS}}
+      sys_names: ${{vars.SYS_NAMES}}
+      sys_targets: ${{vars.sys_TARGETS}}
+      sys_versions: ${{vars.SYS_VERSIONS}}
+      machines: ${{vars.MACHINES}}
+      complement: true
+
+  package:
+    if: ${{ always() && !cancelled() }}
+    name: Package
+    needs: [test]
+    uses: ./.github/workflows/package.yml
+    with:
+      cargo_profiles: '["release"]'
+      feat_sets: ${{vars.FEAT_SETS}}
+      rust_toolchains: '["stable"]'
+      sys_names: ${{vars.SYS_NAMES}}
+      sys_versions: ${{vars.SYS_VERSIONS}}
+      rust_targets: ${{vars.RUST_TARGETS}}
+      sys_targets: ${{vars.sys_TARGETS}}
+      machines: ${{vars.MACHINES}}
