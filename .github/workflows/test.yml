@@ -94,7 +94,6 @@ jobs:
     if: ${{inputs.complement && contains(fromJSON(inputs.cargo_profiles), fromJSON('["test"]')[0]) && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0]) && contains(fromJSON(inputs.rust_toolchains), fromJSON('["nightly"]')[0])}}
     name: Complement Testee
     uses: ./.github/workflows/bake.yml
-    needs: [smoke]
     with:
       bake_targets: '["complement-testee"]'
       cargo_profiles: '["test"]'
@@ -132,7 +131,9 @@ jobs:
         include: ${{fromJSON(inputs.includes)}}
 
     steps:
-    - name: Complement
+    - uses: actions/checkout@v3
+    - name: Execute
+      id: execute
       env:
         cargo_profile: ${{matrix.cargo_profile}}
         rust_toolchain: ${{matrix.rust_toolchain}}
@@ -145,3 +146,21 @@ jobs:
 
       run: |
         docker/complement.sh
+
+    - name: Results
+      id: extract
+      env:
+        name: complement_tester__${{matrix.cargo_profile}}__${{matrix.rust_toolchain}}__${{matrix.rust_target}}__${{matrix.feat_set}}__${{matrix.sys_name}}__${{matrix.sys_version}}__${{matrix.sys_target}}
+        tag: latest
+
+      run: |
+        cid=$(cat "$name")
+        docker cp "$cid:/usr/src/complement/new_results.jsonl" tests/test_results/complement/test_results.jsonl
+        git diff --exit-code --color --color-moved
+
+    - name: Artifacts
+      id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: test_results.${{matrix.feat_set}}.${{matrix.sys_name}}.${{matrix.sys_target}}.jsonl
+        path: ./tests/test_results/complement/test_results.jsonl

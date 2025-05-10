@@ -60,12 +60,12 @@ jobs:
       sys_targets: ${{vars.sys_TARGETS}}
       sys_versions: ${{vars.SYS_VERSIONS}}
       machines: ${{vars.MACHINES}}
-      complement: true
+      complement: false
 
   package:
     if: ${{ !failure() && !cancelled() }}
     name: Package
-    needs: [test]
+    needs: [lint]
     uses: ./.github/workflows/package.yml
     with:
       cargo_profiles: '["release"]'
@@ -80,7 +80,7 @@ jobs:
   publish:
     if: ${{ !failure() && !cancelled() }}
     name: Publish
-    needs: [package]
+    needs: [test, package]
     uses: ./.github/workflows/publish.yml
     with:
       cargo_profiles: '["release"]'
@@ -91,3 +91,5 @@ jobs:
       rust_targets: ${{vars.RUST_TARGETS}}
       sys_targets: ${{vars.sys_TARGETS}}
       machines: ${{vars.MACHINES}}
+    secrets:
+      dockerhub_token: ${{ secrets.dockerhub_token }}

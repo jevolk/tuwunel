@@ -51,10 +51,14 @@ on:
         type: boolean
         default: true
         description: Pre-build cargo dependency targets
+      show_docs:
+        type: boolean
+        default: true
+        description: Pre-build cargo rustdoc targets
 
 jobs:
   systems:
-    if: inputs.show_systems
+    if: ${{ !failure() && !cancelled() && inputs.show_systems }}
     name: System
     uses: ./.github/workflows/bake.yml
     with:
@@ -71,7 +75,7 @@ jobs:
       includes: ${{inputs.includes}}
 
   buildsys:
-    if: inputs.show_systems
+    if: ${{ !failure() && !cancelled() && inputs.show_systems }}
     name: Builder
     needs: [systems]
     uses: ./.github/workflows/bake.yml
@@ -89,7 +93,7 @@ jobs:
       includes: ${{inputs.includes}}
 
   sources:
-    if: inputs.show_sources
+    if: ${{ !failure() && !cancelled() && inputs.show_sources }}
     name: Acquire
     needs: [buildsys]
     uses: ./.github/workflows/bake.yml
@@ -107,7 +111,7 @@ jobs:
       includes: ${{inputs.includes}}
 
   rocksdb:
-    if: inputs.show_rocksdb
+    if: ${{ !failure() && !cancelled() && inputs.show_rocksdb }}
     name: RocksDB
     needs: [sources]
     uses: ./.github/workflows/bake.yml
@@ -125,12 +129,30 @@ jobs:
       includes: ${{inputs.includes}}
 
   deps:
-    if: inputs.show_cargo
+    if: ${{ !failure() && !cancelled() && inputs.show_cargo }}
     name: Build
     needs: [rocksdb]
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["deps-clippy", "deps-build-tests", "deps-build-bins"]'
+      cargo_profiles: ${{inputs.cargo_profiles}}
+      feat_sets: ${{inputs.feat_sets}}
+      rust_toolchains: ${{inputs.rust_toolchains}}
+      sys_names: ${{inputs.sys_names}}
+      sys_versions: ${{inputs.sys_versions}}
+      rust_targets: ${{inputs.rust_targets}}
+      sys_targets: ${{inputs.sys_targets}}
+      machines: ${{inputs.machines}}
+      excludes: ${{inputs.excludes}}
+      includes: ${{inputs.includes}}
+
+  docs:
+    if: ${{ !failure() && !cancelled() && inputs.show_docs }}
+    name: Docs
+    needs: [deps]
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["docs"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}

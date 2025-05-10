@@ -36,38 +36,96 @@ on:
         type: string
         default: '[]'
         description: Matrix inclusions
+    secrets:
+      dockerhub_token:
 
 jobs:
-  dockerhub:
-    if: ${{ !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
-    name: DockerHub
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["dockerhub"]'
-      cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: ${{inputs.feat_sets}}
-      rust_toolchains: ${{inputs.rust_toolchains}}
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
+  containers:
+    if: ${{ !failure() && !cancelled() }}
+    name: Publish via Github
+    runs-on: ${{matrix.machine}}
+    strategy:
+      fail-fast: false
+      matrix:
+        bake_target: ${{fromJSON('["github", "dockerhub"]')}}
+        cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
+        rust_toolchain: ${{fromJSON(inputs.rust_toolchains)}}
+        feat_set: ${{fromJSON(inputs.feat_sets)}}
+        sys_name: ${{fromJSON(inputs.sys_names)}}
+        sys_version: ${{fromJSON(inputs.sys_versions)}}
+        rust_target: ${{fromJSON(inputs.rust_targets)}}
+        sys_target: ${{fromJSON(inputs.sys_targets)}}
+        machine: ${{fromJSON(inputs.machines)}}
+        exclude: ${{fromJSON(inputs.excludes)}}
+        include: ${{fromJSON(inputs.includes)}}
 
-  ghcr:
-    if: ${{ !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
-    name: GitHub Container Registry
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["github"]'
-      cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: ${{inputs.feat_sets}}
-      rust_toolchains: ${{inputs.rust_toolchains}}
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
+    steps:
+      - name: GitHub Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+      - name: DockerHub Login
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.dockerhub_token }}
+
+      - name: Bake
+        env:
+          bake_target: ${{matrix.bake_target}}
+          cargo_profile: ${{matrix.cargo_profile}}
+          rust_toolchain: ${{matrix.rust_toolchain}}
+          rust_target: ${{matrix.rust_target}}
+          feat_set: ${{matrix.feat_set}}
+          sys_name: ${{matrix.sys_name}}
+          sys_version: ${{matrix.sys_version}}
+          sys_target: ${{matrix.sys_target}}
+          machine: ${{matrix.machine}}
+          acct: ${{github.actor}}
+          repo: ${{github.repository}}
+          CI_VERBOSE_ENV: ${{inputs.verbose_env}}
+          CI_SILENT_BAKE: ${{inputs.silent_bake}}
+          CI_PRINT_BAKE: ${{inputs.print_bake}}
+
+        run: |
+          docker/bake.sh ${{matrix.bake_target}}
+
+  packages:
+    if: ${{ !failure() && !cancelled() }}
+    name: Publish packages
+    runs-on: ${{matrix.machine}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{fromJSON('[["pkg-rpm","tuwunel-1.0.0-1.x86_64.rpm"],["pkg-deb","tuwunel_1.0.0-1_amd64.deb"],["standalone", "tuwunel"]]')}}
+        cargo_profile: ${{fromJSON(inputs.cargo_profiles)}}
+        rust_toolchain: ${{fromJSON(inputs.rust_toolchains)}}
+        feat_set: ${{fromJSON(inputs.feat_sets)}}
+        sys_name: ${{fromJSON(inputs.sys_names)}}
+        sys_version: ${{fromJSON(inputs.sys_versions)}}
+        rust_target: ${{fromJSON(inputs.rust_targets)}}
+        sys_target: ${{fromJSON(inputs.sys_targets)}}
+        machine: ${{fromJSON(inputs.machines)}}
+        exclude: ${{fromJSON(inputs.excludes)}}
+        include: ${{fromJSON(inputs.includes)}}
+
+    steps:
+      - name: Extract
+        env:
+          iid: ${{matrix.target[0]}}--${{matrix.cargo_profile}}--${{matrix.rust_toolchain}}--${{matrix.rust_target}}--${{matrix.feat_set}}--${{matrix.sys_name}}--${{matrix.sys_version}}--${{matrix.sys_target}}
+          file: ${{matrix.target[1]}}
+
+        run: |
+          cid=$(docker create "$iid" /)
+          docker cp "$cid:$file" .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.target[1]}}-${{matrix.feat_set}}
+          path: ${{matrix.target[1]}}

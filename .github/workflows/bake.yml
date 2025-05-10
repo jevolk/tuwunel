@@ -56,6 +56,7 @@ jobs:
   bake:
     name: ${{matrix.bake_target}} ${{matrix.cargo_profile}} ${{matrix.rust_toolchain}} ${{matrix.feat_set}} ${{matrix.sys_name}} ${{matrix.sys_version}} ${{matrix.sys_target}}
     runs-on: ${{matrix.machine}}
+    environment: registries
     strategy:
       fail-fast: true
       matrix:
@@ -72,7 +73,10 @@ jobs:
         machine: ${{fromJSON(inputs.machines)}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
     - name: Bake
       env:
         bake_target: ${{matrix.bake_target}}

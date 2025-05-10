@@ -33,5 +33,6 @@ RUN \
             --target "${CARGO_TARGET}" \
             --target-dir "${CARGO_TARGET_DIR}" \
             --manifest-path Cargo.toml \
+            --color always \
             ${cargo_args}
 EOF

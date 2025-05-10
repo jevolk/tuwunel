@@ -48,11 +48,14 @@ RUN \
         "-DCMAKE_BUILD_TYPE=${rocksdb_build_type}" \
         "-DBUILD_SHARED_LIBS=${rocksdb_shared}" \
         "-DCMAKE_CXX_FLAGS:STRING=${rocksdb_cxx_flags}" \
-        "-DCMAKE_CXX_FLAGS_RELEASE:STRING=-g0 -O${rocksdb_opt_level}" \
+        "-DCMAKE_CXX_FLAGS_RELEASE:STRING=-g0 -O${rocksdb_opt_level} -DNDEBUG" \
         "-DPORTABLE=${rocksdb_portable}" \
         "-DFAIL_ON_WARNINGS=0" \
-        "-DUSE_RTTI=1" \
+        "-DUSE_RTTI=0" \
+        "-DWITH_RUNTIME_DEBUG=0" \
         "-DWITH_JNI=0" \
+        "-DWITH_EXAMPLES=0" \
+        "-DWITH_BENCHMARK=0" \
         "-DWITH_BENCHMARK_TOOLS=0" \
         "-DWITH_TRACE_TOOLS=0" \
         "-DWITH_CORE_TOOLS=0" \

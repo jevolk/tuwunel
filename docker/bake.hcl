@@ -194,7 +194,7 @@ group "publish" {
 target "github" {
     name = elem("github", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        "ghcr.io/matrix-construct/tuwunel:${cargo_profile}-${feat_set}-${sys_target}",
+        "ghcr.io/matrix-construct/tuwunel:${GITHUB_REF_NAME}-${cargo_profile}-${feat_set}-${sys_target}",
         (GITHUB_REF_NAME == "main" && cargo_profile == "release" && feat_set == "all")?
             "ghcr.io/matrix-construct/tuwunel:main": "",
         (GITHUB_REF_NAME == "main" && cargo_profile == "release" && feat_set == "all")?
@@ -205,31 +205,32 @@ target "github" {
     output = ["type=registry,compression=zstd,mode=min"]
     matrix = cargo_rust_feat_sys
     inherits = [
-        elem("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
-    contexts = {
-        input = elem("target:install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    }
-    target = "tuwunel"
-    dockerfile-inline =<<EOF
-        FROM input AS tuwunel
-        EXPOSE 8008 8448
-        ENTRYPOINT ["${cargo_install_root}/bin/tuwunel"]
-EOF
 }
 
 target "dockerhub" {
     name = elem("dockerhub", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        "${repo}:${cargo_profile}-${feat_set}-${sys_target}",
-        (GITHUB_REF_NAME == "main" && cargo_profile == "release" && feat_set == "all")?
-            "${repo}:main": "",
-        (GITHUB_REF_NAME == "main" && cargo_profile == "release" && feat_set == "all")?
+        "${repo}:${GITHUB_REF_NAME}-${cargo_profile}-${feat_set}-${sys_target}",
+        (cargo_profile == "release" && feat_set == "all")?
             "${repo}:${GITHUB_REF_NAME}": "",
         (GITHUB_REF_NAME == "main" && cargo_profile == "release" && feat_set == "all")?
             "${repo}:latest": "",
     ]
     output = ["type=registry,compression=zstd,mode=min"]
+    matrix = cargo_rust_feat_sys
+    inherits = [
+        elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    ]
+}
+
+target "tuwunel" {
+    name = elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+    ]
+    output = ["type=docker,compression=zstd,mode=min"]
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
@@ -478,6 +479,28 @@ install_labels = {
     "org.opencontainers.image.version" = "${package_version}"
 }
 
+target "standalone" {
+    name = elem("standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+    ]
+    target = "standalone"
+    labels = install_labels
+    output = ["type=docker,compression=zstd,mode=min"]
+    cache_to = ["type=local,compression=zstd,mode=min"]
+    matrix = cargo_rust_feat_sys
+    inherits = [
+        elem("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    ]
+    contexts = {
+        input = elem("target:install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    }
+    dockerfile-inline =<<EOF
+        FROM scratch AS standalone
+        COPY --from=input /usr/bin/tuwunel .
+EOF
+}
+
 target "install" {
     name = elem("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
@@ -493,7 +516,8 @@ target "install" {
     ]
     contexts = {
         input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
-        output = elem("target:installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        output = elem("target:installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        docs = elem("target:docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     }
 }
 
@@ -794,7 +818,7 @@ target "docs" {
     }
     args = {
         cargo_cmd = "doc"
-        cargo_args = "--no-deps --document-private-items --color always"
+        cargo_args = "--no-deps --document-private-items"
         RUSTDOCFLAGS = "-D warnings"
     }
 }

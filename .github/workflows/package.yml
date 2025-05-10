@@ -39,13 +39,13 @@ on:
 
 jobs:
   deb:
-    if: ${{ !failure() && !cancelled() && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0]) }}
+    if: ${{ !failure() && !cancelled() }}
     name: Deb
     uses: ./.github/workflows/bake.yml
     with:
-      bake_targets: '["pkg-deb-install"]'
+      bake_targets: '["pkg-deb"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: '["all"]'
+      feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
       sys_names: ${{inputs.sys_names}}
       sys_versions: ${{inputs.sys_versions}}
@@ -56,13 +56,30 @@ jobs:
       includes: ${{inputs.includes}}
 
   rpm:
-    if: ${{ !failure() && !cancelled() && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0]) }}
+    if: ${{ !failure() && !cancelled() }}
     name: RPM
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["pkg-rpm"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: '["all"]'
+      feat_sets: ${{inputs.feat_sets}}
+      rust_toolchains: ${{inputs.rust_toolchains}}
+      sys_names: ${{inputs.sys_names}}
+      sys_versions: ${{inputs.sys_versions}}
+      rust_targets: ${{inputs.rust_targets}}
+      sys_targets: ${{inputs.sys_targets}}
+      machines: ${{inputs.machines}}
+      excludes: ${{inputs.excludes}}
+      includes: ${{inputs.includes}}
+
+  static:
+    if: ${{ !failure() && !cancelled() }}
+    name: Standalone
+    uses: ./.github/workflows/bake.yml
+    with:
+      bake_targets: '["standalone"]'
+      cargo_profiles: ${{inputs.cargo_profiles}}
+      feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
       sys_names: ${{inputs.sys_names}}
       sys_versions: ${{inputs.sys_versions}}

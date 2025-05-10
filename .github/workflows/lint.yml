@@ -91,31 +91,12 @@ jobs:
   clippy:
     if: ${{ !failure() && !cancelled() }}
     name: Clippy
-    needs: [fmt, audit, lychee]
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["clippy"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
-
-  doc:
-    if: ${{ !failure() && !cancelled() && contains(fromJSON(inputs.cargo_profiles), fromJSON('["test"]')[0]) && contains(fromJSON(inputs.rust_toolchains), fromJSON('["nightly"]')[0]) }}
-    name: Docs
-    needs: [clippy]
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["docs"]'
-      cargo_profiles: '["test"]'
-      feat_sets: ${{inputs.feat_sets}}
-      rust_toolchains: '["nightly"]'
       sys_names: ${{inputs.sys_names}}
       sys_versions: ${{inputs.sys_versions}}
       rust_targets: ${{inputs.rust_targets}}

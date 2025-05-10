@@ -34,18 +34,30 @@ tester_image="complement-tester--${feat_set}--${sys_name}--${sys_version}--${sys
 testee_image="complement-testee--${cargo_profile}--${rust_toolchain}--${rust_target}--${feat_set}--${sys_name}--${sys_version}--${sys_target}"
 name="complement_tester__${cargo_profile}__${rust_toolchain}__${rust_target}__${feat_set}__${sys_name}__${sys_version}__${sys_target}"
 sock="/var/run/docker.sock"
-arg="--rm --name $name -v $sock:$sock --network=host $tester_image ${testee_image}"
-
-trap 'set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' ERR
+arg="--name $name -v $sock:$sock --network=host $tester_image ${testee_image}"
 
 if test "$CI_VERBOSE_ENV" = "true"; then
 	date
 	env
 fi
 
+if test "$CI" = "true"; then
+	arg="-d $arg"
+else
+	arg="--rm $arg"
+fi
+
+docker rm -f "$name" 2>/dev/null
+
+trap 'set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' ERR
+
 set -x -e
 cid=$(docker run $arg)
 set +x
+
+if test "$CI" = "true"; then
+	echo -n "$cid" > "$name"
+fi
 
 trap 'docker container stop $cid; set +x; date; echo -e "\033[1;41;37mFAIL\033[0m"' INT
 
