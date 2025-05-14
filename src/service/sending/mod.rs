@@ -419,6 +419,7 @@ impl Service {
 
 fn num_senders(args: &crate::Args<'_>) -> usize {
 	const MIN_SENDERS: usize = 1;
+
 	// Limit the number of senders to the number of workers threads or number of
 	// cores, conservatively.
 	let max_senders = args
@@ -427,8 +428,11 @@ fn num_senders(args: &crate::Args<'_>) -> usize {
 		.num_workers()
 		.min(available_parallelism());
 
-	// If the user doesn't override the default 0, this is intended to then default
-	// to 1 for now as multiple senders is experimental.
+	// User configured or defaulted to 0, determine automatically from max_senders.
+	if args.server.config.sender_workers == 0 {
+		return max_senders.max(1);
+	}
+
 	args.server
 		.config
 		.sender_workers
