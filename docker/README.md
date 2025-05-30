@@ -2,8 +2,11 @@
 
 All Docker images for the project are built here. All images are
 [Docker Bake](https://docs.docker.com/build/bake/) targets. All targets are leaves and
-branches of a unified tree leading to a single root. It is a massive combinatorial matrix
+branches of a unified tree leading to a single root. It is a combinatorial matrix
 of images from shared intermediate layers with a huge ever-growing pulsating cache.
+
+The result is the ability to run continuous integration for a number of build
+variations while only paying the cost of rebuilding the last layer for each one.
 
 ### Layout
 

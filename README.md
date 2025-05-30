@@ -1,10 +1,11 @@
 # Tuwunel <sup>🎔</sup>
 
-[![CI/CD](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml)
-![GitHub Repo stars](https://img.shields.io/github/stars/matrix-construct/tuwunel?style=flat&color=%23fcba03&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/matrix-construct/tuwunel?style=flat&color=%2303fcb1&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel%2Fpulse%2Fmonthly)
-![GitHub Created At](https://img.shields.io/github/created-at/matrix-construct/tuwunel)
-![GitHub License](https://img.shields.io/github/license/matrix-construct/tuwunel)
+![GitHub License](https://img.shields.io/github/license/matrix-construct/tuwunel?style=flat&color=%238A2BE2)
+![GitHub Created At](https://img.shields.io/github/created-at/matrix-construct/tuwunel?style=flat&color=%238A2BE2)
+![GitHub Commit Activity](https://img.shields.io/github/commit-activity/m/matrix-construct/tuwunel?style=flat&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel%2Fpulse%2Fmonthly&color=%238A2BE2)
+![Docker Pulls](https://img.shields.io/docker/pulls/jevolk/tuwunel?style=flat&color=8A2BE2)
+![GitHub Repo Stars](https://img.shields.io/github/stars/matrix-construct/tuwunel?style=flat&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel&color=%238A2BE2)
+[![CI/CD](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml/badge.svg?branch=main&style=flat)](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml)
 
 <!-- ANCHOR: catchphrase -->
 
@@ -14,11 +15,11 @@
 
 <!-- ANCHOR: body -->
 
-Tuwunel is a featureful [Matrix](https://matrix.org/) federation homeserver you can use instead of Synapse
-with your favorite Matrix [client](https://matrix.org/ecosystem/clients/),
+Tuwunel is a featureful [Matrix](https://matrix.org/) homeserver you can use instead of Synapse
+with your favorite [client](https://matrix.org/ecosystem/clients/),
 [bridge](https://matrix.org/ecosystem/bridges/) or
-[bot](https://matrix.org/ecosystem/integrations/). The server is written entirely in Rust as a scalable,
-low-cost, lightweight, community-driven alternative covering all but the most niche use-cases.
+[bot](https://matrix.org/ecosystem/integrations/). It is written entirely in Rust to be a scalable,
+lightweight, low-cost, community-driven alternative covering all but the most niche uses.
 
 This project is the official successor to [conduwuit](https://github.com/girlbossceo/conduwuit), which
 was a featureful and high-performance fork of [Conduit](https://gitlab.com/famedly/conduit), all
@@ -30,7 +31,6 @@ development. It is now maintained by full-time staff.
 
 ### Getting Started
 
-1. Get Tuwunel
 - [GitHub Releases](https://github.com/matrix-construct/tuwunel/releases)
 - [Sourcecode](https://github.com/matrix-construct/tuwunel/) `git clone https://github.com/matrix-construct/tuwunel.git`
 - [DockerHub](https://hub.docker.com/r/jevolk/tuwunel) or `docker pull jevolk/tuwunel:latest`
@@ -39,28 +39,26 @@ development. It is now maintained by full-time staff.
 - Arch Package is expected very soon and this will be updated.
 - Nix Package has not yet been updated but expect this soon.
 
-2. [Configure](https://github.com/matrix-construct/tuwunel/blob/main/docs/configuration.md) by
-copying and editing the `tuwunel-example.toml`. **Most users deploy via docker or a distribution
-package and should follow the [appropriate guide](https://github.com/matrix-construct/tuwunel/tree/main/docs/deploying)
-instead.** This is just a summary for the impatient. See the full [documentation](https://github.com/matrix-construct/tuwunel/blob/main/docs/).
-
-> [!IMPORTANT]
-> Setting the `server_name` and `database_path` is required.
+**1.** [Configure](https://github.com/matrix-construct/tuwunel/blob/main/docs/configuration.md) by
+copying and editing the `tuwunel-example.toml`. The `server_name` and `database_path` must be
+configured. **Most users deploy via docker or a distribution package and should follow the
+[appropriate guide](https://github.com/matrix-construct/tuwunel/tree/main/docs/deploying) instead.**
+This is just a summary for the impatient. See the full
+[documentation](https://github.com/matrix-construct/tuwunel/blob/main/docs/).
 
 > [!WARNING]
-> Avoid using a sub-domain for your `server_name`. You can always delegate with a [`.well-known`](https://github.com/spantaleev/matrix-docker-ansible-deploy/blob/master/docs/configuring-well-known.md)
-> file later, but you can never change your `server_name`.
+> Avoid using a sub-domain for your `server_name`. You can always delegate later with a [`.well-known`](https://github.com/spantaleev/matrix-docker-ansible-deploy/blob/master/docs/configuring-well-known.md)
+> file, but you can never change your `server_name`.
 
-3. Setup TLS certificates. Most users enjoy the [Caddy](https://caddyserver.com/) reverse-proxy
+**2.** Setup TLS certificates. Most users enjoy the [Caddy](https://caddyserver.com/) reverse-proxy
 which automates their certificate renewal. Advanced users can load their own TLS certificates
 using the configuration and Tuwunel can be deployed without a reverse proxy. Example
-`/etc/caddy/Caddyfile` configuration with [Element-web](https://github.com/element-hq/element-web/releases)
-unzipped in `/var/www/element`:
+`/etc/caddy/Caddyfile` configuration with [Element](https://github.com/element-hq/element-web/releases)
+unzipped to `/var/www/element`:
 ```
 https://tuwunel.me:8448 {
 	reverse_proxy http://127.0.0.1:8008
 }
-
 https://tuwunel.me:443 {
 	root * /var/www/element/
 	file_server
@@ -68,13 +66,14 @@ https://tuwunel.me:443 {
 ```
 `caddy reload --config /etc/caddy/Caddyfile`
 
-4. Start the server, connect your client and register your username. The first registration is
+**3.** Start the server, connect your client and register your username. The first registration is
 granted server admin.
 
 > [!TIP]
 > Configure a secret `registration_token` and set `allow_registration = true`
 
- 🤗 Did you find this and other documentation helpful? We would love your feedback when setting up Tuwunel. _No problem is your fault_. Please open an issue to help us streamline.
+ 🤗 Did you find this and other documentation helpful? We would love to hear feedback about setting
+ up Tuwunel.
 	
 
 ### Migrating to Tuwunel
@@ -83,8 +82,7 @@ granted server admin.
 |-----------------|-----------|
 | conduwuit? | ✅ Yes. This will be supported at a minimum for one year, but likely indefinitely. |
 | Synapse? | ❌ Not yet, but this is planned and an important issue. Subscribe to [#2](https://github.com/matrix-construct/tuwunel/issues/2). |
-| Conduit? | ❌ Not right now, but this is planned and expected in the near future. Subscribe to [#41](https://github.com/matrix-construct/tuwunel/issues/41). |
-| Another domain? |  ❌ No. Matrix does not yet support changing your domain. The `server_name` you choose is permanent. |
+| Conduit? | ❌ Not right now, but this is planned for the near future. Subscribe to [#41](https://github.com/matrix-construct/tuwunel/issues/41). |
 | Any other fork of Conduit? | ❌ No. The migration must be explicitly listed in this table. |
 > [!CAUTION]
 > **Never switch between different forks of Conduit or you will corrupt your database.**
