@@ -13,9 +13,6 @@ concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
-env:
-  inputs: ${{github.event.inputs}}
-
 jobs:
   init:
     name: Init
@@ -29,6 +26,7 @@ jobs:
       sys_targets: ${{vars.SYS_TARGETS || env.default_sys_targets}}
       sys_versions: ${{vars.SYS_VERSIONS || env.default_sys_versions}}
       machines: ${{vars.MACHINES || env.default_machines}}
+      excludes: ${{vars.EXCLUDES || env.default_excludes}}
     env:
       default_cargo_profiles: '["test", "release"]'
       default_feat_sets: '["none", "default", "all"]'
@@ -38,6 +36,12 @@ jobs:
       default_rust_targets: '["x86_64-unknown-linux-gnu"]'
       default_sys_targets: '["x86_64-linux-gnu"]'
       default_machines: '["x86_64"]'
+      default_excludes: >
+        [
+          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
+          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
+          {"cargo_profile": "release-max-perf", "feat_set": "none"}
+        ]
     steps:
     - name: Initialize Builder
       run: |
@@ -65,28 +69,27 @@ jobs:
           --name "${GITHUB_ACTOR}" \
           --buildkitd-flags "--allow-insecure-entitlement network.host"
 
-## commented out due to https://github.com/orgs/community/discussions/18001
-#
-#  deps:
-#    if: ${{fromJSON(vars.CI_VERBOSE_DEPS || 'false')}}
-#    name: Deps
-#    needs: [init]
-#    uses: ./.github/workflows/deps.yml
-#    with:
-#      cargo_profiles: ${{needs.init.outputs.cargo_profiles}}
-#      feat_sets: ${{needs.init.outputs.feat_sets}}
-#      rust_toolchains: ${{needs.init.outputs.rust_toolchains}}
-#      rust_targets: ${{needs.init.outputs.rust_targets}}
-#      sys_names: ${{needs.init.outputs.sys_names}}
-#      sys_targets: ${{needs.init.outputs.sys_targets}}
-#      sys_versions: ${{needs.init.outputs.sys_versions}}
-#      machines: ${{needs.init.outputs.machines}}
-#      excludes: >
-#        [
-#          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
-#          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
-#          {"cargo_profile": "release-max-perf", "feat_set": "none"}
-#        ]
+  ## commented due to https://github.com/orgs/community/discussions/18001
+  #deps:
+  #  if: ${{fromJSON(vars.CI_VERBOSE_DEPS || 'false')}}
+  #  name: Deps
+  #  needs: [init]
+  #  uses: ./.github/workflows/deps.yml
+  #  with:
+  #    cargo_profiles: ${{needs.init.outputs.cargo_profiles}}
+  #    feat_sets: ${{needs.init.outputs.feat_sets}}
+  #    rust_toolchains: ${{needs.init.outputs.rust_toolchains}}
+  #    rust_targets: ${{needs.init.outputs.rust_targets}}
+  #    sys_names: ${{needs.init.outputs.sys_names}}
+  #    sys_targets: ${{needs.init.outputs.sys_targets}}
+  #    sys_versions: ${{needs.init.outputs.sys_versions}}
+  #    machines: ${{needs.init.outputs.machines}}
+  #    excludes: >
+  #      [
+  #        {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
+  #        {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
+  #        {"cargo_profile": "release-max-perf", "feat_set": "none"}
+  #      ]
 
   lint:
     if: ${{ !failure() && !cancelled() }}
@@ -102,12 +105,7 @@ jobs:
       sys_targets: ${{needs.init.outputs.sys_targets}}
       sys_versions: ${{needs.init.outputs.sys_versions}}
       machines: ${{needs.init.outputs.machines}}
-      excludes: >
-        [
-          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
-          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
-          {"cargo_profile": "release-max-perf", "feat_set": "none"}
-        ]
+      excludes: ${{needs.init.outputs.excludes}}
 
   test:
     if: ${{ !failure() && !cancelled() }}
@@ -123,13 +121,8 @@ jobs:
       sys_targets: ${{needs.init.outputs.sys_targets}}
       sys_versions: ${{needs.init.outputs.sys_versions}}
       machines: ${{needs.init.outputs.machines}}
+      excludes: ${{needs.init.outputs.excludes}}
       complement: ${{fromJSON(vars.COMPLEMENT || 'true')}}
-      excludes: >
-        [
-          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
-          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
-          {"cargo_profile": "release-max-perf", "feat_set": "none"}
-        ]
 
   package:
     if: ${{ !failure() && !cancelled() }}
