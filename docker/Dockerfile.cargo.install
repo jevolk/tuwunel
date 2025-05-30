@@ -64,6 +64,8 @@ ARG CARGO_INSTALL_ROOT
 ARG install_temp="/usr/src/tuwunel/install"
 
 WORKDIR /
+COPY --link --from=input . .
+
 RUN \
 --mount=type=bind,from=output,src=${install_temp},dst=/mnt/install \
 <<EOF

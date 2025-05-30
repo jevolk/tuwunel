@@ -5,6 +5,9 @@ ARG var_cache
 ARG var_lib_apt
 ARG packages
 
+WORKDIR /
+COPY --link --from=input . .
+
 ENV packages="\
 bzip2 \
 ca-certificates \
@@ -20,9 +23,6 @@ pkgconf \
 xz-utils \
 ${packages} \
 "
-
-WORKDIR /
-COPY --link --from=input . .
 
 RUN  \
 --mount=type=cache,dst=${var_cache},sharing=locked \
