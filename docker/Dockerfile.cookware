@@ -5,12 +5,17 @@ ARG rust_toolchain
 ARG RUSTUP_HOME
 ARG CARGO_HOME
 ARG CARGO_TARGET
+ARG CARGO_TERM_VERBOSE
 ARG rustup_version="1.28.1"
 ARG rustup_components
 
 WORKDIR /
 COPY --link --from=input . .
 
+ENV RUSTUP_HOME="${RUSTUP_HOME}"
+ENV CARGO_HOME="${CARGO_HOME}"
+ENV CARGO_TARGET="${CARGO_TARGET}"
+ENV CARGO_TERM_VERBOSE="${CARGO_TERM_VERBOSE}"
 WORKDIR /opt
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \

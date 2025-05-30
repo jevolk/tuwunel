@@ -118,7 +118,7 @@ variable "use_chef" {
 # Options for output verbosity
 variable "BUILDKIT_PROGRESS" {}
 variable "CARGO_TERM_VERBOSE" {
-    default = BUILDKIT_PROGRESS == "plain"? 1: 0
+    default = BUILDKIT_PROGRESS == "plain"? "true": "false"
 }
 
 variable "docker_dir" {
@@ -1196,10 +1196,10 @@ target "ingredients" {
         CARGO_TERM_VERBOSE = CI == "true"
         RUST_BACKTRACE = "full"
         ROCKSDB_LIB_DIR="/usr/lib/${sys_target}"
-        JEMALLOC_OVERRIDE="/usr/lib/${sys_target}/libjemalloc.so"
-        ZSTD_SYS_USE_PKG_CONFIG = (
-            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? 1: 0
-        )
+        JEMALLOC_OVERRIDE="/usr/lib/${sys_target}/libjemalloc.a"
+        #ZSTD_SYS_USE_PKG_CONFIG = (
+        #    contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? 1: 0
+        #)
     }
 }
 
