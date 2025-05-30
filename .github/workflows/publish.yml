@@ -5,7 +5,6 @@ on:
     inputs:
       cargo_profiles:
         type: string
-        default: '["release"]'
         description: Cargo profiles
       feat_sets:
         type: string
@@ -48,6 +47,7 @@ jobs:
     if: >
       ${{
         !failure() && !cancelled()
+        && inputs.machines
         && inputs.docker_repo
         && github.ref == 'refs/heads/main'
       }}

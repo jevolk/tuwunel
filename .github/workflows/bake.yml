@@ -5,7 +5,6 @@ on:
     inputs:
       bake_targets:
         type: string
-        default: '["default"]'
         description: Bake Matrix
       cargo_profiles:
         type: string
@@ -58,7 +57,13 @@ on:
 
 jobs:
   bake:
-    if: ${{ !failure() && !cancelled() && fromJSON(inputs.machines)[0] != null }}
+    if: >
+      ${{
+        !failure() && !cancelled()
+        && fromJSON(inputs.machines)[0] != null
+        && fromJSON(inputs.bake_targets)[0] != null
+      }}
+
     name: >
       ${{matrix.bake_target}}
       ${{matrix.cargo_profile}}

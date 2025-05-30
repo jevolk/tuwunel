@@ -133,6 +133,7 @@ jobs:
     if: >
       ${{
         !failure() && !cancelled()
+        && inputs.cargo.profiles
       }}
     name: Clippy
     uses: ./.github/workflows/bake.yml
