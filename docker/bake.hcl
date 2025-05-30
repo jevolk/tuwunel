@@ -1047,6 +1047,7 @@ target "deps-base" {
         cargo_profile = cargo_profile
         cook_args = "--all-targets --no-build"
         CARGO_TARGET_DIR = "/usr/src/tuwunel/target/${sys_name}/${sys_version}/${rust_toolchain}/${cargo_profile}/${feat_set}"
+        CARGO_TARGET_CACHE = "/usr/src/tuwunel/target/${sys_name}/${sys_version}/_shared_cache"
         CARGO_PROFILE_test_DEBUG = "0"
         CARGO_PROFILE_bench_DEBUG = "0"
         CARGO_PROFILE_bench_LTO = "0"

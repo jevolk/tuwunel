@@ -7,6 +7,7 @@ ARG RUSTUP_HOME
 ARG CARGO_HOME
 ARG CARGO_TARGET
 ARG CARGO_TARGET_DIR
+ARG CARGO_TARGET_CACHE
 ARG CARGO_BUILD_RUSTFLAGS
 ARG cargo_profile
 ARG cargo_features
@@ -25,8 +26,10 @@ RUN \
 --mount=type=cache,dst=${RUSTUP_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME},sharing=locked \
 --mount=type=cache,dst=${CARGO_TARGET_DIR},sharing=locked \
---mount=type=cache,dst=${CARGO_TARGET_DIR}/deps,sharing=shared \
---mount=type=cache,dst=${CARGO_TARGET_DIR}/build,sharing=shared \
+--mount=type=cache,dst=${CARGO_TARGET_CACHE}/deps,sharing=shared \
+--mount=type=cache,dst=${CARGO_TARGET_CACHE}/build,sharing=shared \
+--mount=type=cache,dst=${CARGO_TARGET_CACHE}/incremental,sharing=shared \
+--mount=type=cache,dst=${CARGO_TARGET_CACHE}/.fingerprint,sharing=shared \
 <<EOF
     set -eux
     rustup run ${rust_toolchain} \
