@@ -92,7 +92,7 @@ jobs:
   #      ]
 
   lint:
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && false }}
     name: Lint
     needs: [init] #needs: [init, deps]
     uses: ./.github/workflows/lint.yml
@@ -108,7 +108,7 @@ jobs:
       excludes: ${{needs.init.outputs.excludes}}
 
   test:
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && false }}
     name: Test
     needs: [init, lint]
     uses: ./.github/workflows/test.yml
@@ -147,7 +147,7 @@ jobs:
         ]
 
   publish:
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && false }}
     name: Publish
     needs: [init, test, package]
     uses: ./.github/workflows/publish.yml

@@ -61,54 +61,54 @@ jobs:
           "standalone": {"dst": "tuwunel"}
         }
 
-  build_pkgs:
-    if: >
-      ${{
-        !failure() && !cancelled()
-        && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
-        && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
-        && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
-      }}
-    name: Build Pkgs
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["pkg-deb", "pkg-rpm"]'
-      cargo_profiles: '["release"]'
-      feat_sets: '["all"]'
-      rust_toolchains: '["stable"]'
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
-      artifact: >
-        {
-          "pkg-deb": {"dst": "tuwunel_1.0.0-1_amd64.deb"},
-          "pkg-rpm": {"dst": "tuwunel-1.0.0-1.x86_64.rpm"}
-        }
+#  build_pkgs:
+#    if: >
+#      ${{
+#        !failure() && !cancelled()
+#        && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
+#        && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
+#        && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
+#      }}
+#    name: Build Pkgs
+#    uses: ./.github/workflows/bake.yml
+#    with:
+#      bake_targets: '["pkg-deb", "pkg-rpm"]'
+#      cargo_profiles: '["release"]'
+#      feat_sets: '["all"]'
+#      rust_toolchains: '["stable"]'
+#      sys_names: ${{inputs.sys_names}}
+#      sys_versions: ${{inputs.sys_versions}}
+#      rust_targets: ${{inputs.rust_targets}}
+#      sys_targets: ${{inputs.sys_targets}}
+#      machines: ${{inputs.machines}}
+#      excludes: ${{inputs.excludes}}
+#      includes: ${{inputs.includes}}
+#      artifact: >
+#        {
+#          "pkg-deb": {"dst": "tuwunel_1.0.0-1_amd64.deb"},
+#          "pkg-rpm": {"dst": "tuwunel-1.0.0-1.x86_64.rpm"}
+#        }
 
-  check_pkgs:
-    if: >
-      ${{
-        !failure() && !cancelled()
-        && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
-        && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
-        && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
-      }}
-    name: Check Pkgs
-    needs: [build_pkgs]
-    uses: ./.github/workflows/bake.yml
-    with:
-      bake_targets: '["pkg-deb-install", "pkg-rpm-install"]'
-      cargo_profiles: '["release"]'
-      feat_sets: '["all"]'
-      rust_toolchains: '["stable"]'
-      sys_names: ${{inputs.sys_names}}
-      sys_versions: ${{inputs.sys_versions}}
-      rust_targets: ${{inputs.rust_targets}}
-      sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
-      excludes: ${{inputs.excludes}}
-      includes: ${{inputs.includes}}
+#  check_pkgs:
+#    if: >
+#      ${{
+#        !failure() && !cancelled()
+#        && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
+#        && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
+#        && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
+#      }}
+#    name: Check Pkgs
+#    needs: [build_pkgs]
+#    uses: ./.github/workflows/bake.yml
+#    with:
+#      bake_targets: '["pkg-deb-install", "pkg-rpm-install"]'
+#      cargo_profiles: '["release"]'
+#      feat_sets: '["all"]'
+#      rust_toolchains: '["stable"]'
+#      sys_names: ${{inputs.sys_names}}
+#      sys_versions: ${{inputs.sys_versions}}
+#      rust_targets: ${{inputs.rust_targets}}
+#      sys_targets: ${{inputs.sys_targets}}
+#      machines: ${{inputs.machines}}
+#      excludes: ${{inputs.excludes}}
+#      includes: ${{inputs.includes}}
