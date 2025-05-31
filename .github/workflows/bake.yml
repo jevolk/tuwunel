@@ -131,5 +131,5 @@ jobs:
       name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{matrix.cargo_profile}}-${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}
+        name: ${{matrix.cargo_profile}}-${{matrix.feat_set}}-${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}
         path: _artifact/${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}

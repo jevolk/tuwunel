@@ -41,14 +41,13 @@ jobs:
     if: >
       ${{
         !failure() && !cancelled()
-        && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
       }}
     name: Standalone
     uses: ./.github/workflows/bake.yml
     with:
       bake_targets: '["standalone"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
-      feat_sets: '["all"]'
+      feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
       sys_names: ${{inputs.sys_names}}
       sys_versions: ${{inputs.sys_versions}}
