@@ -18,6 +18,7 @@ EOF
 
 FROM input AS rocksdb-build
 ARG rocksdb_shared=0
+ARG rocksdb_static_rt=0
 ARG rocksdb_portable=1
 ARG rocksdb_opt_level="3"
 ARG rocksdb_build_type="Release"
@@ -42,7 +43,12 @@ RUN \
 <<EOF
     set -eux
 
-    LDFLAGS="-Wl,--strip-all" \
+    ARFLAGS=""
+    LDFLAGS="-Wl,--strip-all"
+    if test x"$rocksdb_static_rt" = x"1"; then
+        LDFLAGS="$LDFLAGS -static-libgcc -static-libstdc++"
+    fi
+
     cmake -H. -Bbuild \
         "-DCMAKE_RULE_MESSAGES:BOOL=${rocksdb_make_rule_messages}" \
         "-DCMAKE_VERBOSE_MAKEFILE:BOOL=${rocksdb_make_verbose}" \
@@ -51,6 +57,8 @@ RUN \
         "-DROCKSDB_BUILD_SHARED=${rocksdb_shared}" \
         "-DCMAKE_CXX_FLAGS:STRING=${rocksdb_cxx_flags}" \
         "-DCMAKE_CXX_FLAGS_RELEASE:STRING=-g0 -O${rocksdb_opt_level} -DNDEBUG" \
+        "-DCMAKE_STATIC_LINKER_FLAGS=${ARFLAGS}" \
+        "-DCMAKE_EXE_LINKER_FLAGS=${LDFLAGS}" \
         "-DPORTABLE=${rocksdb_portable}" \
         "-DFAIL_ON_WARNINGS=0" \
         "-DUSE_RTTI=0" \
