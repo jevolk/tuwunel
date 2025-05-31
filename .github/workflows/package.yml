@@ -102,8 +102,7 @@ jobs:
     needs: [build_pkgs]
     uses: ./.github/workflows/bake.yml
     with:
-      #bake_targets: '["pkg-deb-install", "pkg-rpm-install"]'
-      bake_targets: '["pkg-deb-install"]'
+      bake_targets: '["pkg-deb-install", "pkg-rpm-install"]'
       cargo_profiles: '["release"]'
       feat_sets: '["all"]'
       rust_toolchains: '["stable"]'
