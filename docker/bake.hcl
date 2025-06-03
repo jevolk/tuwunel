@@ -2,8 +2,10 @@ variable "CI" {}
 variable "GITHUB_ACTOR" {}
 variable "GITHUB_REPOSITORY" {}
 variable "GITHUB_REF" {}
-variable "GITHUB_REF_SHA" {}
 variable "GITHUB_REF_NAME" {}
+variable "GITHUB_REF_SHA" {
+    default = "HEAD"
+}
 
 variable "acct" {
     default = "${GITHUB_ACTOR}"
@@ -41,7 +43,7 @@ variable "feat_sets" {
 variable "cargo_profiles" {
     default = "[\"test\", \"release\"]"
 }
-variable "cargo_install_root" {
+variable "install_prefix" {
     default = "/usr"
 }
 
@@ -112,7 +114,7 @@ variable "image_compress_level" {
     default = 11
 }
 variable "cache_compress_level" {
-    default = 6
+    default = 7
 }
 
 # Use the cargo-chef layering strategy to separate and pre-build dependencies
@@ -589,40 +591,23 @@ target "install" {
     tags = [
         elem_tag("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "install"
     labels = install_labels
-    output = ["type=docker,compression=zstd,mode=min,compression-level=${image_compress_level}"]
-    cache_to = ["type=local,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
+    output = ["type=cacheonly,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
+    cache_to = ["type=local,compression=zstd,mode=max,compression-level=${cache_compress_level}"]
+    dockerfile = "${docker_dir}/Dockerfile.install"
+    target = "install"
     matrix = cargo_rust_feat_sys
     inherits = [
-        elem("installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
         input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
-        output = elem("target:installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        bins = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         #docs = elem("target:docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         #book = elem("target:book", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     }
-}
-
-target "installer" {
-    name = elem("installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    tags = [
-        elem_tag("installer", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
-    ]
-    target = "installer"
-    dockerfile = "${docker_dir}/Dockerfile.cargo.install"
-    matrix = cargo_rust_feat_sys
-    inherits = [
-        elem("deps-build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
-        elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
-    ]
-    contexts = {
-        input = elem("target:deps-build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
-    }
     args = {
-        cargo_args = "--bins"
-        CARGO_INSTALL_ROOT = cargo_install_root
+        install_prefix = install_prefix
     }
 }
 
@@ -1120,10 +1105,14 @@ target "deps-base" {
         cargo_profile = cargo_profile
         cook_args = "--all-targets --no-build"
 
+        # Base path
         CARGO_TARGET_DIR = "${cargo_tgt_dir_base}"
-        cargo_tgt_cache = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/_shared_cache"
-        cargo_tgt_dst = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/${feat_set}"
-        cargo_tgt_sub = (
+        # cache key for unique artifact area
+        cargo_target_artifact = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/${feat_set}/${git_ref_sha}"
+        # cache key for hashed subdirs
+        cargo_target_share = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/_shared_cache"
+        # cased name of profile subdir within target complex
+        cargo_target_profile = (
             (cargo_profile == "dev" || cargo_profile == "test")? "debug":
             (cargo_profile == "release" || cargo_profile == "bench")? "release":
             cargo_profile

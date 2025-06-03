@@ -16,7 +16,6 @@ COPY --link --from=input . .
 
 ENV packages="ca-certificates ${packages}"
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${var_cache},sharing=locked \
 --mount=type=cache,dst=${var_lib_apt},sharing=locked \
 <<EOF
@@ -39,7 +38,6 @@ WORKDIR /
 COPY --link --from=input . .
 
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${var_cache},sharing=locked \
 --mount=type=cache,dst=${var_lib_apt},sharing=locked \
 <<EOF
@@ -56,7 +54,6 @@ WORKDIR /
 COPY --link --from=input . .
 
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${var_cache},sharing=locked \
 --mount=type=cache,dst=${var_lib_apt},sharing=locked \
 <<EOF

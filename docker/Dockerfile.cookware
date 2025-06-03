@@ -13,9 +13,7 @@ COPY --link --from=input . .
 
 ENV CARGO_TARGET="${rust_target}"
 WORKDIR /opt
-RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
-<<EOF
+RUN <<EOF
     set -eux
 
     url="https://static.rust-lang.org/rustup/archive/${rustup_version}/${rust_target}/rustup-init"
@@ -26,7 +24,6 @@ EOF
 ENV RUSTUP_HOME="${RUSTUP_HOME}"
 ENV CARGO_HOME="${CARGO_HOME}"
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/git,sharing=locked \
@@ -59,7 +56,6 @@ WORKDIR /
 COPY --link --from=input . .
 
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/git,sharing=locked \
@@ -73,7 +69,6 @@ RUN \
 EOF
 
 RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/git,sharing=locked \

@@ -8,10 +8,7 @@ COPY --link --from=input . .
 WORKDIR /usr/src
 COPY --link --from=recipe rocksdb.url .
 
-RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
---mount=type=cache,dst=/var/lock/uwu/rocksdb,sharing=locked \
-<<EOF
+RUN <<EOF
     set -eux
     submodule="librocksdb-sys/rocksdb"
     url="$(cat rocksdb.url)"
@@ -47,10 +44,7 @@ WORKDIR /usr/src/rocksdb/librocksdb-sys/rocksdb
 ENV CC="clang"
 ENV CXX="clang++"
 ENV nprocs=${nprocs}
-RUN \
---mount=type=cache,dst=/var/lock/uwu/local,sharing=locked \
---mount=type=cache,dst=/var/lock/uwu/rocksdb,sharing=locked \
-<<EOF
+RUN <<EOF
     set -eux
 
     cmake -H. -Bbuild \

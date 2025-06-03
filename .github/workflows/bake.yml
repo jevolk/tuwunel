@@ -121,7 +121,7 @@ jobs:
         docker/bake.sh "${{matrix.bake_target}}"
 
     # Optionally extract an inner artifact
-    - name: Extract Artifact
+    - name: Extract Inner Artifact
       if: >
         !failure() && !cancelled()
         && fromJSON(inputs.artifact)[matrix.bake_target].dst
@@ -139,7 +139,7 @@ jobs:
         docker cp "$cid:$src" "_artifact/$dst"
 
     # Optionally extract the image itself as an artifact.
-    - name: Extract Image
+    - name: Extract Image Artifact
       if: >
         !failure() && !cancelled()
         && fromJSON(inputs.artifact)[matrix.bake_target].dst
