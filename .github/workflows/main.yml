@@ -26,13 +26,6 @@ jobs:
       default_rust_targets: '["x86_64-unknown-linux-gnu"]'
       default_sys_targets: '["x86_64-linux-gnu"]'
       default_machines: '["x86_64"]'
-      default_excludes: >
-        [
-          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
-          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
-          {"cargo_profile": "release-max-perf", "feat_set": "none"},
-          {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"}
-        ]
 
     outputs:
       cargo_profiles: ${{vars.CARGO_PROFILES || env.default_cargo_profiles}}
@@ -43,7 +36,6 @@ jobs:
       sys_targets: ${{vars.SYS_TARGETS || env.default_sys_targets}}
       sys_versions: ${{vars.SYS_VERSIONS || env.default_sys_versions}}
       machines: ${{vars.MACHINES || env.default_machines}}
-      excludes: ${{vars.EXCLUDES || env.default_excludes}}
 
     steps:
     - name: Initialize Builder
@@ -112,7 +104,16 @@ jobs:
       sys_targets: ${{needs.init.outputs.sys_targets}}
       sys_versions: ${{needs.init.outputs.sys_versions}}
       machines: ${{needs.init.outputs.machines}}
-      excludes: ${{needs.init.outputs.excludes}}
+      excludes: >
+        [
+          {"cargo_profile": "release-debuginfo"},
+          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
+          {"cargo_profile": "release-max-perf", "feat_set": "none"},
+          {"cargo_profile": "release-max-perf", "feat_set": "default"},
+          {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "none"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "default"}
+        ]
 
   test:
     if: >
@@ -122,6 +123,7 @@ jobs:
     needs: [init, lint]
     uses: ./.github/workflows/test.yml
     with:
+      complement: ${{fromJSON(vars.COMPLEMENT || 'true')}}
       cargo_profiles: ${{needs.init.outputs.cargo_profiles}}
       feat_sets: ${{needs.init.outputs.feat_sets}}
       rust_toolchains: ${{needs.init.outputs.rust_toolchains}}
@@ -130,8 +132,14 @@ jobs:
       sys_targets: ${{needs.init.outputs.sys_targets}}
       sys_versions: ${{needs.init.outputs.sys_versions}}
       machines: ${{needs.init.outputs.machines}}
-      excludes: ${{needs.init.outputs.excludes}}
-      complement: ${{fromJSON(vars.COMPLEMENT || 'true')}}
+      excludes: >
+        [
+          {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"},
+          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
+          {"cargo_profile": "release-max-perf", "feat_set": "default"},
+          {"cargo_profile": "release-max-perf", "feat_set": "none"},
+          {"cargo_profile": "release"}
+        ]
 
   package:
     if: >
@@ -153,9 +161,12 @@ jobs:
         [
           {"feat_set": "none"},
           {"cargo_profile": "test"},
-          {"cargo_profile": "release", "rust_toolchain": "nightly"},
+          {"cargo_profile": "release-debuginfo", "feat_set": "default"},
+          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
           {"cargo_profile": "release-max-perf", "feat_set": "default"},
-          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"}
+          {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
+          {"cargo_profile": "release-max-perf", "feat_set": "default"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly"}
         ]
 
   publish:
@@ -180,6 +191,7 @@ jobs:
           {"feat_set": "none"},
           {"cargo_profile": "test"},
           {"rust_toolchain": "nightly", "cargo_profile": "release"},
+          {"cargo_profile": "release-debuginfo"},
           {"cargo_profile": "release-max-perf"}
         ]
 

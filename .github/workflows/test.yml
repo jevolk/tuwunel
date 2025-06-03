@@ -84,9 +84,11 @@ jobs:
           {"cargo_profile": "test", "feat_set": "default"},
           {"cargo_profile": "test", "rust_toolchain": "stable"},
           {"cargo_profile": "release", "rust_toolchain": "nightly"},
-          {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
+          {"cargo_profile": "release", "rust_toolchain": "stable", "feat_set": "none"},
+          {"cargo_profile": "release-debuginfo"},
           {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
-          {"cargo_profile": "release-max-perf", "feat_set": "none"}
+          {"cargo_profile": "release-max-perf", "feat_set": "none"},
+          {"cargo_profile": "release-max-perf", "feat_set": "default"}
         ]
 
   complement:
