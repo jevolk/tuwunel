@@ -54,10 +54,11 @@ jobs:
             enabled = true
             rootless = true
             gc = true
+            reservedSpace = "256GB"
+            maxUsedSpace = "576GB"
           [[worker.oci.gcpolicy]]
-            reservedSpace = "384GB"
-            maxUsedSpace = "768GB"
-            keepDuration = "504h"
+            reservedSpace = "256GB"
+            maxUsedSpace = "576GB"
             filters = ["label!=cache==pin"]
             all = true
         EOF
@@ -141,7 +142,7 @@ jobs:
           {"cargo_profile": "release-max-perf", "rust_toolchain": "stable"},
           {"cargo_profile": "release-max-perf", "feat_set": "default"},
           {"cargo_profile": "release-max-perf", "feat_set": "none"},
-          {"cargo_profile": "release"}
+          {"cargo_profile": "release-debuginfo"}
         ]
 
   package:
