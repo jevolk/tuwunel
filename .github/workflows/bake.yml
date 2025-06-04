@@ -126,7 +126,7 @@ jobs:
         !failure() && !cancelled()
         && fromJSON(inputs.artifact)[matrix.bake_target].dst
         && fromJSON(inputs.artifact)[matrix.bake_target].img == null
-        && !fromJSON(inputs.artifact)[matrix.bake_target].runner
+        && fromJSON(inputs.artifact)[matrix.bake_target].runner != true
 
       env:
         iid: ${{matrix.bake_target}}--${{matrix.cargo_profile}}--${{matrix.rust_toolchain}}--${{matrix.rust_target}}--${{matrix.feat_set}}--${{matrix.sys_name}}--${{matrix.sys_version}}--${{matrix.sys_target}}
@@ -181,3 +181,15 @@ jobs:
       with:
         path: _artifact/*
         name: ${{matrix.cargo_profile}}-${{matrix.feat_set}}-${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}
+
+    # Optionally upload artifact as pages-artifact
+    - name: Upload Pages Artifact
+      if: >
+        !failure() && !cancelled()
+        && fromJSON(inputs.artifact)[matrix.bake_target].dst
+        && fromJSON(inputs.artifact)[matrix.bake_target].pages == true
+
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _artifact/${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}
+        name: ${{fromJSON(inputs.artifact)[matrix.bake_target].dst}}

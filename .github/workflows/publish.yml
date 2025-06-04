@@ -43,6 +43,22 @@ on:
       dockerhub_token:
 
 jobs:
+  documents:
+    if: >
+      !failure() && !cancelled()
+      && inputs.machines
+
+    name: Documents
+    runs-on: self-hosted
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - id: book
+        name: Book
+        uses: actions/deploy-pages@v4
+
   containers:
     if: >
       !failure() && !cancelled()
@@ -50,7 +66,7 @@ jobs:
       && inputs.docker_repo != ''
       && github.ref == 'refs/heads/main'
 
-    name: Publish containers
+    name: Containers
     runs-on: ${{matrix.machine}}
     permissions: write-all
     continue-on-error: false

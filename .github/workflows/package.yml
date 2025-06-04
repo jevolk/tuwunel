@@ -60,7 +60,7 @@ jobs:
       includes: ${{inputs.includes}}
       artifact: >
         {
-          "book": {"dst": "book", "src": "/book"},
+          "book": {"dst": "book", "src": "/book", "pages": true},
         }
 
   build_static:
