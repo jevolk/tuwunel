@@ -1195,13 +1195,7 @@ target "deps-base" {
                     join(" ", dynamic_rustflags),
                 ]):
 
-            join(" ", [
-                contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
-                    "-Clink-arg=-lzstd": "",
-                contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
-                    "-Clink-arg=-luring": "",
-                join(" ", dynamic_rustflags),
-            ])
+            join(" ", [])
         )
     }
 }
