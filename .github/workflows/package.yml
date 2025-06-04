@@ -63,14 +63,14 @@ jobs:
           "book": {"dst": "book", "src": "/book"},
         }
 
-  build_standalone:
+  build_static:
     if: >
       !failure() && !cancelled()
 
-    name: Standalone
+    name: Static
     uses: ./.github/workflows/bake.yml
     with:
-      bake_targets: '["standalone", "tuwunel"]'
+      bake_targets: '["static", "docker", "oci"]'
       cargo_profiles: ${{inputs.cargo_profiles}}
       feat_sets: ${{inputs.feat_sets}}
       rust_toolchains: ${{inputs.rust_toolchains}}
@@ -83,8 +83,9 @@ jobs:
       includes: ${{inputs.includes}}
       artifact: >
         {
-          "standalone": {"dst": "tuwunel", "src": "/usr/bin/tuwunel" },
-          "tuwunel": {"dst": "tuwunel-docker.tar.gz", "img": true }
+          "static": {"dst": "tuwunel", "src": "/usr/bin/tuwunel" },
+          "docker": {"dst": "tuwunel-docker.tar.gz", "img": true },
+          "oci": {"dst": "tuwunel-oci.tar.zst", "runner": true }
         }
 
   build_pkgs:

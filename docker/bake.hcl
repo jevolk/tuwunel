@@ -280,7 +280,7 @@ target "github" {
     output = ["type=registry,compression=zstd,mode=min,compression-level=${image_compress_level}"]
     matrix = cargo_rust_feat_sys
     inherits = [
-        elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
 }
 
@@ -294,7 +294,7 @@ target "dockerhub" {
     output = ["type=registry,compression=zstd,mode=min,compression-level=${image_compress_level}"]
     matrix = cargo_rust_feat_sys
     inherits = [
-        elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
 }
 
@@ -520,8 +520,9 @@ target "smoketest" {
 group "installs" {
     targets = [
         "install",
-        "standalone",
-        "tuwunel",
+        "static",
+        "docker",
+        "oci",
     ]
 }
 
@@ -539,14 +540,26 @@ install_labels = {
     "org.opencontainers.image.version" = "${package_version}"
 }
 
-target "tuwunel" {
-    name = elem("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+target "oci" {
+    name = elem("oci", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("tuwunel", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("oci", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+    ]
+    output = ["type=oci,dest=tuwunel-oci.tar.zst,mode=min,compression-level=${image_compress_level}"]
+    matrix = cargo_rust_feat_sys
+    inherits = [
+        elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+    ]
+}
+
+target "docker" {
+    name = elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
     matrix = cargo_rust_feat_sys
     inherits = [
-        elem("standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("static", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
         elem("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
@@ -555,22 +568,22 @@ target "tuwunel" {
             || cargo_profile == "release-max-perf"
             || cargo_profile == "release"
             || cargo_profile == "release-debuginfo"?
-                elem("target:standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
+                elem("target:static", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
                 elem("target:install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         )
     }
-    target = "tuwunel"
+    target = "image"
     dockerfile-inline =<<EOF
-        FROM input AS tuwunel
+        FROM input AS image
         EXPOSE 8008 8448
         ENTRYPOINT ["tuwunel"]
 EOF
 }
 
-target "standalone" {
-    name = elem("standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+target "static" {
+    name = elem("static", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("standalone", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("static", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
     matrix = cargo_rust_feat_sys
     inherits = [
@@ -579,9 +592,9 @@ target "standalone" {
     contexts = {
         input = elem("target:install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
-    target = "standalone"
+    target = "static"
     dockerfile-inline =<<EOF
-        FROM scratch AS standalone
+        FROM scratch AS static
         COPY --from=input /usr/bin/tuwunel /usr/bin/tuwunel
 EOF
 }
@@ -592,7 +605,7 @@ target "install" {
         elem_tag("install", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
     labels = install_labels
-    output = ["type=docker,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
+    output = ["type=docker,compression=zstd,mode=min,compression-level=${image_compress_level}"]
     cache_to = ["type=local,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     dockerfile = "${docker_dir}/Dockerfile.install"
     target = "install"
