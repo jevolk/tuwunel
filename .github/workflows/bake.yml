@@ -126,6 +126,7 @@ jobs:
         !failure() && !cancelled()
         && fromJSON(inputs.artifact)[matrix.bake_target].dst
         && fromJSON(inputs.artifact)[matrix.bake_target].img == null
+        && !fromJSON(inputs.artifact)[matrix.bake_target].runner
 
       env:
         iid: ${{matrix.bake_target}}--${{matrix.cargo_profile}}--${{matrix.rust_toolchain}}--${{matrix.rust_target}}--${{matrix.feat_set}}--${{matrix.sys_name}}--${{matrix.sys_version}}--${{matrix.sys_target}}
@@ -153,6 +154,22 @@ jobs:
         rm -rf _artifact
         mkdir -p "_artifact"
         docker save -o "_artifact/$dst" "$iid"
+
+    # Optionally extract a runner artifact
+    - name: Extract Outer Artifact
+      if: >
+        !failure() && !cancelled()
+        && fromJSON(inputs.artifact)[matrix.bake_target].dst
+        && fromJSON(inputs.artifact)[matrix.bake_target].runner == true
+
+      env:
+        dst: ${{ fromJSON(inputs.artifact)[matrix.bake_target].dst }}
+        src: ${{ fromJSON(inputs.artifact)[matrix.bake_target].src || fromJSON(inputs.artifact)[matrix.bake_target].dst }}
+
+      run: |
+        rm -rf _artifact
+        mkdir -p "_artifact"
+        mv "$src" "_artifact/$dst"
 
     # Upload either artifact
     - name: Upload Artifact
