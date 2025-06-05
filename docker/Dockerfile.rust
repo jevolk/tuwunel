@@ -1,18 +1,15 @@
 # syntax = docker/dockerfile:1.11-labs
 
-FROM input AS cookware
-ARG rust_toolchain
+FROM input AS rustup
+ARG RUST_HOME
 ARG rust_target
-ARG RUSTUP_HOME
-ARG CARGO_HOME
 ARG rustup_version="1.28.1"
 ARG rustup_profile="minimal"
 
 WORKDIR /
 COPY --link --from=input . .
 
-ENV CARGO_TARGET="${rust_target}"
-WORKDIR /opt
+WORKDIR ${RUST_HOME}
 RUN <<EOF
     set -eux
 
@@ -21,6 +18,24 @@ RUN <<EOF
     chmod o+x rustup-init
 EOF
 
+FROM input AS rust
+ARG rust_toolchain
+ARG rust_target
+ARG RUST_HOME
+ARG RUSTUP_HOME
+ARG CARGO_HOME
+ARG CARGO_TARGET
+ARG rustup_version="1.28.1"
+ARG rustup_profile="minimal"
+ARG CARGO_TERM_VERBOSE
+ARG rustup_components
+ARG cargo_installs
+
+WORKDIR /
+COPY --link --from=input . .
+
+WORKDIR ${RUST_HOME}
+ENV CARGO_TARGET="${rust_target}"
 ENV RUSTUP_HOME="${RUSTUP_HOME}"
 ENV CARGO_HOME="${CARGO_HOME}"
 RUN \
@@ -41,19 +56,6 @@ RUN \
     rm rustup-init
 EOF
 ENV PATH="${CARGO_HOME}/bin:$PATH"
-
-
-FROM input AS chef
-ARG rust_toolchain
-ARG rust_target
-ARG RUSTUP_HOME
-ARG CARGO_HOME
-ARG CARGO_TERM_VERBOSE
-ARG rustup_components
-ARG cargo_installs
-
-WORKDIR /
-COPY --link --from=input . .
 
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=locked \

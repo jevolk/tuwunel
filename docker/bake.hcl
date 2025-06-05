@@ -246,19 +246,6 @@ rust_feat_sys = {
     sys_target = jsondecode(sys_targets)
 }
 
-feat_sys = {
-    feat_set = jsondecode(feat_sets)
-    sys_name = jsondecode(sys_names)
-    sys_version = jsondecode(sys_versions)
-    sys_target = jsondecode(sys_targets)
-}
-
-sys = {
-    sys_name = jsondecode(sys_names)
-    sys_version = jsondecode(sys_versions)
-    sys_target = jsondecode(sys_targets)
-}
-
 #
 # Publish
 #
@@ -389,23 +376,23 @@ target "complement-tester" {
         elem("complement-base", [feat_set, sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:complement-base", [feat_set, sys_name, sys_version, sys_target])
         complement-config = elem("target:complement-config", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:complement-base", [sys_name, sys_version, sys_target])
     }
 }
 
 target "complement-base" {
-    name = elem("complement-base", [feat_set, sys_name, sys_version, sys_target])
+    name = elem("complement-base", [sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("complement-base", [feat_set, sys_name, sys_version, sys_target], "latest")
+        elem_tag("complement-base", [sys_name, sys_version, sys_target], "latest")
     ]
     target = "complement-base"
-    matrix = feat_sys
+    matrix = sys
     inherits = [
-        elem("complement-config", [feat_set, sys_name, sys_version, sys_target])
+        elem("complement-config", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:base", [sys_name, sys_version, sys_target])
     }
     args = complement_args
 }
@@ -419,10 +406,10 @@ target "complement-config" {
     dockerfile = "${docker_dir}/Dockerfile.complement"
     matrix = feat_sys
     inherits = [
-        elem("source", [feat_set, sys_name, sys_version, sys_target])
+        elem("source", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        source = elem("target:source", [feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
 }
 
@@ -614,7 +601,7 @@ target "install" {
         elem("build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:runtime", [feat_set, sys_name, sys_version, sys_target])
         bins = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         #docs = elem("target:docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         #book = elem("target:book", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
@@ -701,7 +688,7 @@ target "pkg-deb-install" {
         elem("pkg-deb", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:runtime", [feat_set, sys_name, sys_version, sys_target])
         pkg-deb = elem("target:pkg-deb", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
 }
@@ -1227,7 +1214,8 @@ target "rocksdb-build" {
         elem("rocksdb-fetch", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:rocksdb-fetch", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        rocksdb-fetch = elem("target:rocksdb-fetch", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
     }
     args = {
         rocksdb_zstd = contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? 1: 0
@@ -1249,8 +1237,8 @@ target "rocksdb-fetch" {
     dockerfile = "${docker_dir}/Dockerfile.rocksdb"
     matrix = rust_feat_sys
     inherits = [
-        elem("recipe", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
         elem("kitchen", [feat_set, sys_name, sys_version, sys_target]),
+        elem("recipe", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
         input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
@@ -1307,16 +1295,17 @@ target "ingredients" {
         elem_tag("ingredients", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
     target =  "ingredients"
-    dockerfile = "${docker_dir}/Dockerfile.ingredients"
-    cache_to = ["type=local,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
+    cache_to = ["type=local,compression=zstd,mode=min"]
     matrix = rust_feat_sys
     inherits = [
-        elem("source", [feat_set, sys_name, sys_version, sys_target]),
-        elem("chef", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("kitchen", [feat_set, sys_name, sys_version, sys_target]),
+        elem("rust", [rust_toolchain, rust_target, sys_name, sys_version, sys_target]),
+        elem("source", [sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        input = elem("target:chef", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        source = elem("target:source", [feat_set, sys_name, sys_version, sys_target])
+        rust = elem("target:rust", [rust_toolchain, rust_target, sys_name, sys_version, sys_target])
+        input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_features = join(",", [
@@ -1337,18 +1326,18 @@ target "ingredients" {
 }
 
 target "source" {
-    name = elem("source", [feat_set, sys_name, sys_version, sys_target])
+    name = elem("source", [sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("source", [feat_set, sys_name, sys_version, sys_target], "latest")
+        elem_tag("source", [sys_name, sys_version, sys_target], "latest")
     ]
     target =  "source"
-    dockerfile = "${docker_dir}/Dockerfile.ingredients"
-    matrix = feat_sys
+    dockerfile = "${docker_dir}/Dockerfile.source"
+    matrix = sys
     inherits = [
-        elem("kitchen", [feat_set, sys_name, sys_version, sys_target])
+        elem("builder", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:builder", [sys_name, sys_version, sys_target])
     }
     args = {
         git_checkout = "${git_checkout}"
@@ -1360,13 +1349,9 @@ target "source" {
 # Build Systems
 #
 
-group "buildsys" {
-    targets = [
-        "kitchen",
-        "cookware",
-        "chef",
-    ]
-}
+#
+# Rust toolchain
+#
 
 rustup_components = [
     "clippy",
@@ -1384,49 +1369,63 @@ cargo_installs = [
     "typos-cli",
 ]
 
-#
-# Rust build environment
-#
-
-target "chef" {
-    name = elem("chef", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    tags = [
-        elem_tag("chef", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
-    ]
-    target = "chef"
-    matrix = rust_feat_sys
-    inherits = [
-        elem("cookware", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    ]
-    contexts = {
-        input = elem("target:cookware", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    }
-    args = {
-        CARGO_TERM_VERBOSE = CARGO_TERM_VERBOSE
-        rustup_components = join(" ", rustup_components)
-        cargo_installs = join(" ", cargo_installs)
-    }
+rust_tool_sys = {
+    rust_toolchain = jsondecode(rust_toolchains)
+    rust_target = jsondecode(rust_targets)
+    sys_name = jsondecode(sys_names)
+    sys_version = jsondecode(sys_versions)
+    sys_target = jsondecode(sys_targets)
 }
 
-target "cookware" {
-    name = elem("cookware", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+target "rust" {
+    name = elem("rust", [rust_toolchain, rust_target, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("cookware", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("rust", [rust_toolchain, rust_target, sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "cookware"
-    dockerfile = "${docker_dir}/Dockerfile.cookware"
-    matrix = rust_feat_sys
+    target = "rust"
+    matrix = rust_tool_sys
     inherits = [
-        elem("kitchen", [feat_set, sys_name, sys_version, sys_target])
+        elem("rustup", [rust_target, sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:rustup", [rust_target, sys_name, sys_version, sys_target])
     }
     args = {
         rust_toolchain = rust_toolchain
+        rustup_components = join(" ", rustup_components)
+        cargo_installs = join(" ", cargo_installs)
+
+        CARGO_TERM_VERBOSE = CARGO_TERM_VERBOSE
+        RUSTUP_HOME = "/opt/rust/rustup/${sys_name}"
+        CARGO_HOME = "/opt/rust/cargo/${sys_name}/${sys_target}"
+    }
+}
+
+rust_sys = {
+    rust_target = jsondecode(rust_targets)
+    sys_name = jsondecode(sys_names)
+    sys_version = jsondecode(sys_versions)
+    sys_target = jsondecode(sys_targets)
+}
+
+target "rustup" {
+    name = elem("rustup", [rust_target, sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("rustup", [rust_target, sys_name, sys_version, sys_target], "latest"),
+    ]
+    target = "rustup"
+    dockerfile = "${docker_dir}/Dockerfile.rust"
+    matrix = rust_sys
+    inherits = [
+        elem("builder", [sys_name, sys_version, sys_target])
+    ]
+    contexts = {
+        input = elem("target:builder", [sys_name, sys_version, sys_target])
+    }
+    args = {
         rust_target = rust_target
-        RUSTUP_HOME = "/opt/rustup/${sys_name}"
-        CARGO_HOME = "/opt/cargo/${sys_name}/${sys_target}"
+        CARGO_TARGET = rust_target
+        RUST_HOME = "/opt/rust"
     }
 }
 
@@ -1434,34 +1433,65 @@ target "cookware" {
 # Base build environment
 #
 
+feat_sys = {
+    feat_set = jsondecode(feat_sets)
+    sys_name = jsondecode(sys_names)
+    sys_version = jsondecode(sys_versions)
+    sys_target = jsondecode(sys_targets)
+}
+
+kitchen_packages = [
+    "clang",
+    "cmake",
+    "curl",
+    "git",
+    "libc6-dev",
+    "libssl-dev",
+    "make",
+    "pkg-config",
+    "pkgconf",
+    "xz-utils",
+]
+
 target "kitchen" {
     description = "Base build environment; sans Rust"
     name = elem("kitchen", [feat_set, sys_name, sys_version, sys_target])
     tags = [
         elem_tag("kitchen", [feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "kitchen"
-    dockerfile = "${docker_dir}/Dockerfile.kitchen"
     matrix = feat_sys
     inherits = [
-        elem("diner", [feat_set, sys_name, sys_version, sys_target])
+        elem("builder", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:builder", [sys_name, sys_version, sys_target])
     }
     args = {
         packages = join(" ", [
-            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
-                "liburing-dev": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")? "liburing-dev": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? "libzstd-dev": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")? "libjemalloc-dev": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "hardened_malloc")? "g++": "",
+        ])
+    }
+}
 
-            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
-                "libzstd-dev": "",
-
-            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")?
-                "libjemalloc-dev": "",
-
-            contains(split(",", cargo_feat_sets[feat_set]), "hardened_malloc")?
-                "g++": "",
+target "builder" {
+    description = "Base build environment; sans Rust"
+    name = elem("builder", [sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("builder", [sys_name, sys_version, sys_target], "latest"),
+    ]
+    matrix = sys
+    inherits = [
+        elem("base", [sys_name, sys_version, sys_target])
+    ]
+    contexts = {
+        input = elem("target:base", [sys_name, sys_version, sys_target])
+    }
+    args = {
+        packages = join(" ", [
+            join(" ", kitchen_packages),
         ])
     }
 }
@@ -1473,57 +1503,54 @@ target "kitchen" {
 
 group "systems" {
     targets = [
-        "system",
-        "diner",
+        "runtime",
         "valgrind",
         "perf",
     ]
 }
 
+sys = {
+    sys_name = jsondecode(sys_names)
+    sys_version = jsondecode(sys_versions)
+    sys_target = jsondecode(sys_targets)
+}
+
 target "perf" {
     description = "Base runtime environment with linux-perf installed."
-    name = elem("perf", [feat_set, sys_name, sys_version, sys_target])
+    name = elem("perf", [sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("perf", [feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("perf", [sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "perf"
-    matrix = feat_sys
+    matrix = sys
     inherits = [
-        elem("diner", [feat_set, sys_name, sys_version, sys_target])
+        elem("base", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:base", [sys_name, sys_version, sys_target])
     }
 }
 
 target "valgrind" {
     description = "Base runtime environment with valgrind installed."
-    name = elem("valgrind", [feat_set, sys_name, sys_version, sys_target])
+    name = elem("valgrind", [sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("valgrind", [feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("valgrind", [sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "valgrind"
-    matrix = feat_sys
+    matrix = sys
     inherits = [
-        elem("diner", [feat_set, sys_name, sys_version, sys_target])
+        elem("base", [sys_name, sys_version, sys_target])
     ]
     contexts = {
-        input = elem("target:diner", [feat_set, sys_name, sys_version, sys_target])
+        input = elem("target:base", [sys_name, sys_version, sys_target])
     }
 }
 
-#
-# Base Runtime
-#
-
-target "diner" {
+target "runtime" {
     description = "Base runtime environment for executing the application."
-    name = elem("diner", [feat_set, sys_name, sys_version, sys_target])
+    name = elem("runtime", [feat_set, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("diner", [feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("runtime", [feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-    target = "diner"
-    dockerfile = "${docker_dir}/Dockerfile.diner"
     matrix = feat_sys
     variable "cargo_feat_set" {
         default = cargo_feat_sets[feat_set]
@@ -1531,6 +1558,36 @@ target "diner" {
     variable "cargo_features" {
         default = split(",", cargo_feat_set)
     }
+    inherits = [
+        elem("base", [sys_name, sys_version, sys_target])
+    ]
+    contexts = {
+        input = elem("target:base", [sys_name, sys_version, sys_target])
+    }
+    args = {
+        packages = join(" ", [
+            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")? "liburing2": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? "libzstd1": "",
+            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")? "libjemalloc2": "",
+        ])
+    }
+}
+
+base_pkgs = [
+    "adduser",
+    "bzip2",
+    "ca-certificates",
+    "gzip",
+]
+
+target "base" {
+    description = "Base runtime environment with essential runtime packages"
+    name = elem("base", [sys_name, sys_version, sys_target])
+    tags = [
+        elem_tag("base", [sys_name, sys_version, sys_target], "latest"),
+    ]
+    target = "runtime"
+    matrix = sys
     inherits = [
         elem("system", [sys_name, sys_version, sys_target])
     ]
@@ -1541,14 +1598,7 @@ target "diner" {
         DEBIAN_FRONTEND="noninteractive"
         var_lib_apt = "/var/lib/apt"
         var_cache = "/var/cache"
-        packages = join(" ", [
-            "adduser",
-            "bzip2",
-            "gzip",
-            contains(split(",", cargo_feat_sets[feat_set]), "io_uring")? "liburing2": "",
-            contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? "libzstd1": "",
-            contains(split(",", cargo_feat_sets[feat_set]), "jemalloc")? "libjemalloc2": "",
-        ])
+        packages = join(" ", base_pkgs)
     }
 }
 
@@ -1566,7 +1616,7 @@ target "system" {
     output = ["type=cacheonly,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     cache_to = ["type=local,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     cache_from = ["type=local"]
-    dockerfile = "${docker_dir}/Dockerfile.diner"
+    dockerfile = "${docker_dir}/Dockerfile.system"
     matrix = sys
     context = "."
     args = {

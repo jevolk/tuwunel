@@ -8,7 +8,9 @@ COPY --link --from=input . .
 WORKDIR /usr/src
 COPY --link --from=recipe rocksdb.url .
 
-RUN <<EOF
+RUN \
+--mount=type=cache,dst=/var/lock/uwu/rocksdb,sharing=locked \
+<<EOF
     set -eux
     submodule="librocksdb-sys/rocksdb"
     url="$(cat rocksdb.url)"
@@ -39,12 +41,18 @@ ARG nprocs
 
 WORKDIR /
 COPY --link --from=input . .
+COPY --link --from=rocksdb-fetch /usr/src/rocksdb /usr/src/rocksdb
 
 WORKDIR /usr/src/rocksdb/librocksdb-sys/rocksdb
 ENV CC="clang"
 ENV CXX="clang++"
 ENV nprocs=${nprocs}
-RUN <<EOF
+# rocksdb might build separately for every variant of feat_set but
+# some have overlapping features causing the input image to be the
+# same. by serializing here we can skip rebuilding if we're lucky
+RUN \
+--mount=type=cache,dst=/var/lock/uwu/rocksdb,sharing=locked \
+<<EOF
     set -eux
 
     cmake -H. -Bbuild \
