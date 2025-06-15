@@ -173,7 +173,7 @@ static_rustflags = [
     "-C target-feature=+crt-static",
     "-C link-arg=--verbose",
     "-C link-arg=-Wl,--gc-sections",
-    "-C link-arg=-L/usr/lib/gcc/x86_64-linux-gnu/14",     # FIXME
+    #"-C link-arg=-L/usr/lib/gcc/x86_64-linux-gnu/14",     # FIXME
     "-C link-arg=-l:libstdc++.a",
     "-C link-arg=-l:libc.a",
     "-C link-arg=-l:libm.a",
@@ -1385,7 +1385,7 @@ target "ingredients" {
         )
         RUST_BACKTRACE = "full"
         ROCKSDB_LIB_DIR="/usr/lib/${sys_target}"
-        JEMALLOC_OVERRIDE="/usr/lib/${sys_target}/libjemalloc.a"
+        JEMALLOC_OVERRIDE="/usr/lib/${sys_target}/libjemalloc.so"
         ZSTD_SYS_USE_PKG_CONFIG = (
             contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")? 1: 0
         )

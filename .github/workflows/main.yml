@@ -18,7 +18,7 @@ concurrency:
 jobs:
   init:
     name: Init
-    runs-on: self-hosted
+    runs-on: ${{matrix.runner}}
     env:
       default_cargo_profiles: '["test", "release"]'
       default_feat_sets: '["none", "default", "all"]'
@@ -27,7 +27,7 @@ jobs:
       default_sys_versions: '["testing-slim"]'
       default_rust_targets: '["x86_64-unknown-linux-gnu"]'
       default_sys_targets: '["x86_64-linux-gnu"]'
-      default_machines: '["x86_64"]'
+      default_machines: '["X64"]'
 
     outputs:
       cargo_profiles: ${{vars.CARGO_PROFILES || env.default_cargo_profiles}}
@@ -40,8 +40,18 @@ jobs:
       machines: ${{vars.MACHINES || env.default_machines}}
       release_url: ${{steps.release.outputs.upload_url}}
 
+    strategy:
+      fail-fast: true
+      matrix:
+        runner: ${{fromJSON(vars.RUNNERS)}}
+        machine: ${{fromJSON(vars.MACHINES)}}
+        exclude: ${{fromJSON(vars.RUNNERS_EXCLUDES)}}
+
     steps:
     - name: Initialize Builder
+      env:
+        reserved_space: '{"het": "256GB", "aws": "48GB", "gcp": "160GB"}'
+        max_used_space: '{"het": "576GB", "aws": "64GB", "gcp": "192GB"}'
       run: |
         set +e
         docker buildx inspect "${GITHUB_ACTOR}"
@@ -50,6 +60,8 @@ jobs:
         fi
 
         set -e
+        reserved_space=$(echo "$reserved_space" | jq -r ".$runner")
+        max_used_space=$(echo "$max_used_space" | jq -r ".$runner")
         cat <<EOF > ./buildkitd.toml
         [system]
           platformsCacheMaxAge = "504h"
@@ -57,11 +69,11 @@ jobs:
           enabled = true
           rootless = false
           gc = true
-          reservedSpace = "256GB"
-          maxUsedSpace = "576GB"
+          reservedSpace = "${reserved_space}"
+          maxUsedSpace = "${max_used_space}"
         [[worker.oci.gcpolicy]]
-          reservedSpace = "256GB"
-          maxUsedSpace = "576GB"
+          reservedSpace = "${reserved_space}"
+          maxUsedSpace = "${max_used_space}"
           filters = ["label!=cache==pin"]
           all = true
         EOF
@@ -76,6 +88,7 @@ jobs:
     - if: >
         !failure() && !cancelled()
         && contains(github.ref, 'refs/tags/v')
+        && matrix.runner == 'het'
 
       id: release
       name: Create Release

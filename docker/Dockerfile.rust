@@ -3,7 +3,7 @@
 FROM input AS rustup
 ARG RUST_HOME
 ARG rust_target
-ARG rustup_version="1.28.1"
+ARG rustup_version="1.28.2"
 ARG rustup_profile="minimal"
 
 WORKDIR /
