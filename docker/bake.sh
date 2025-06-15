@@ -34,15 +34,15 @@ if test ! -z "$rust_toolchain"; then
 fi
 
 if test ! -z "$sys_name"; then
-    env_sys_name="[\"${sys_name}\"]"
+    env_sys_names="[\"${sys_name}\"]"
 fi
 
 if test ! -z "$sys_target"; then
-    env_sys_target="[\"${sys_target}\"]"
+    env_sys_targets="[\"${sys_target}\"]"
 fi
 
 if test ! -z "$sys_version"; then
-    env_sys_version="[\"${sys_version}\"]"
+    env_sys_versions="[\"${sys_version}\"]"
 fi
 
 set -a
@@ -60,7 +60,7 @@ runner_name=$(echo $RUNNER_NAME | cut -d"." -f1)
 runner_num=$(echo $RUNNER_NAME | cut -d"." -f2)
 builder_name="${GITHUB_ACTOR:-owo}"
 toolchain_toml="$docker_dir/../rust-toolchain.toml"
-rust_msrv=$(grep "channel = " $toolchain_toml | cut -d'=' -f2 | sed 's/\s"\|"$//g')
+rust_msrv=$(grep "channel = " "$toolchain_toml" | cut -d'=' -f2 | sed 's/\s"\|"$//g')
 rocksdb_opt_level=3
 rocksdb_portable=1
 git_checkout="HEAD"
