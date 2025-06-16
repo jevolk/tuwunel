@@ -81,7 +81,7 @@ pub(crate) async fn login_route(
 	};
 
 	// Generate a new token for the device
-	let token = utils::random_string(TOKEN_LENGTH);
+	let access_token = utils::random_string(TOKEN_LENGTH);
 
 	// Generate new device id if the user didn't specify one
 	let device_id = body
@@ -102,7 +102,7 @@ pub(crate) async fn login_route(
 			.create_device(
 				&user_id,
 				&device_id,
-				&token,
+				&access_token,
 				body.initial_device_display_name.clone(),
 				Some(client.to_string()),
 			)
@@ -110,28 +110,32 @@ pub(crate) async fn login_route(
 	} else {
 		services
 			.users
-			.set_token(&user_id, &device_id, &token)
+			.set_token(&user_id, &device_id, &access_token)
 			.await?;
 	}
 
+	info!("{user_id} logged in");
+
+	let home_server = services.server.name.clone().into();
+
 	// send client well-known if specified so the client knows to reconfigure itself
-	let client_discovery_info: Option<DiscoveryInfo> = services
+	let well_known: Option<DiscoveryInfo> = services
 		.config
 		.well_known
 		.client
 		.as_ref()
-		.map(|server| DiscoveryInfo::new(HomeserverInfo::new(server.to_string())));
-
-	info!("{user_id} logged in");
+		.map(ToString::to_string)
+		.map(HomeserverInfo::new)
+		.map(DiscoveryInfo::new);
 
 	#[allow(deprecated)]
 	Ok(login::v3::Response {
 		user_id,
-		access_token: token,
+		access_token,
 		device_id,
-		well_known: client_discovery_info,
+		home_server,
+		well_known,
 		expires_in: None,
-		home_server: Some(services.config.server_name.clone()),
 		refresh_token: None,
 	})
 }

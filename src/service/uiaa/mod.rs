@@ -6,12 +6,12 @@ use std::{
 use ruma::{
 	CanonicalJsonValue, DeviceId, OwnedDeviceId, OwnedUserId, UserId,
 	api::client::{
-		error::ErrorKind,
+		error::{ErrorKind, StandardErrorBody},
 		uiaa::{AuthData, AuthType, Password, UiaaInfo, UserIdentifier},
 	},
 };
 use tuwunel_core::{
-	Err, Error, Result, err, error, implement, utils,
+	Err, Result, err, error, implement, utils,
 	utils::{hash, string::EMPTY},
 };
 use tuwunel_database::{Deserialized, Json, Map};
@@ -67,14 +67,15 @@ pub async fn read_tokens(&self) -> Result<HashSet<String>> {
 		.as_ref()
 	{
 		match std::fs::read_to_string(file) {
+			| Err(e) => error!("Failed to read the registration token file: {e}"),
 			| Ok(text) => {
 				text.split_ascii_whitespace().for_each(|token| {
 					tokens.insert(token.to_owned());
 				});
 			},
-			| Err(e) => error!("Failed to read the registration token file: {e}"),
 		}
 	}
+
 	if let Some(token) = &self.services.config.registration_token {
 		tokens.insert(token.to_owned());
 	}
@@ -93,25 +94,14 @@ pub fn create(
 ) {
 	// TODO: better session error handling (why is uiaainfo.session optional in
 	// ruma?)
-	self.set_uiaa_request(
-		user_id,
-		device_id,
-		uiaainfo
-			.session
-			.as_ref()
-			.expect("session should be set"),
-		json_body,
-	);
+	let session = uiaainfo
+		.session
+		.as_ref()
+		.expect("session should be set");
 
-	self.update_uiaa_session(
-		user_id,
-		device_id,
-		uiaainfo
-			.session
-			.as_ref()
-			.expect("session should be set"),
-		Some(uiaainfo),
-	);
+	self.set_uiaa_request(user_id, device_id, session, json_body);
+
+	self.update_uiaa_session(user_id, device_id, session, Some(uiaainfo));
 }
 
 #[implement(Service)]
@@ -148,40 +138,35 @@ pub async fn try_auth(
 			} else if let Some(username) = user {
 				username
 			} else {
-				return Err(Error::BadRequest(
-					ErrorKind::Unrecognized,
-					"Identifier type not recognized.",
-				));
+				return Err!(Request(Unrecognized("Identifier type not recognized.")));
 			};
 
 			#[cfg(not(feature = "element_hacks"))]
 			let Some(UserIdentifier::UserIdOrLocalpart(username)) = identifier else {
-				return Err(Error::BadRequest(
-					ErrorKind::Unrecognized,
-					"Identifier type not recognized.",
-				));
+				return Err!(Request(Unrecognized("Identifier type not recognized.")));
 			};
 
 			let user_id_from_username = UserId::parse_with_server_name(
 				username.clone(),
 				self.services.globals.server_name(),
 			)
-			.map_err(|_| Error::BadRequest(ErrorKind::InvalidParam, "User ID is invalid."))?;
+			.map_err(|_| err!(Request(InvalidParam("User ID is invalid."))))?;
 
 			// Check if the access token being used matches the credentials used for UIAA
 			if user_id.localpart() != user_id_from_username.localpart() {
 				return Err!(Request(Forbidden("User ID and access token mismatch.")));
 			}
-			let user_id = user_id_from_username;
 
 			// Check if password is correct
+			let user_id = user_id_from_username;
 			if let Ok(hash) = self.services.users.password_hash(&user_id).await {
 				let hash_matches = hash::verify_password(password, &hash).is_ok();
 				if !hash_matches {
-					uiaainfo.auth_error = Some(ruma::api::client::error::StandardErrorBody {
+					uiaainfo.auth_error = Some(StandardErrorBody {
 						kind: ErrorKind::forbidden(),
 						message: "Invalid username or password.".to_owned(),
 					});
+
 					return Ok((false, uiaainfo));
 				}
 			}
@@ -196,10 +181,11 @@ pub async fn try_auth(
 					.completed
 					.push(AuthType::RegistrationToken);
 			} else {
-				uiaainfo.auth_error = Some(ruma::api::client::error::StandardErrorBody {
+				uiaainfo.auth_error = Some(StandardErrorBody {
 					kind: ErrorKind::forbidden(),
 					message: "Invalid registration token.".to_owned(),
 				});
+
 				return Ok((false, uiaainfo));
 			}
 		},
@@ -221,30 +207,19 @@ pub async fn try_auth(
 		completed = true;
 	}
 
+	let session = uiaainfo
+		.session
+		.as_ref()
+		.expect("session is always set");
+
 	if !completed {
-		self.update_uiaa_session(
-			user_id,
-			device_id,
-			uiaainfo
-				.session
-				.as_ref()
-				.expect("session is always set"),
-			Some(&uiaainfo),
-		);
+		self.update_uiaa_session(user_id, device_id, session, Some(&uiaainfo));
 
 		return Ok((false, uiaainfo));
 	}
 
 	// UIAA was successful! Remove this session and return true
-	self.update_uiaa_session(
-		user_id,
-		device_id,
-		uiaainfo
-			.session
-			.as_ref()
-			.expect("session is always set"),
-		None,
-	);
+	self.update_uiaa_session(user_id, device_id, session, None);
 
 	Ok((true, uiaainfo))
 }
@@ -258,6 +233,7 @@ fn set_uiaa_request(
 	request: &CanonicalJsonValue,
 ) {
 	let key = (user_id.to_owned(), device_id.to_owned(), session.to_owned());
+
 	self.userdevicesessionid_uiaarequest
 		.write()
 		.expect("locked for writing")
@@ -271,13 +247,8 @@ pub fn get_uiaa_request(
 	device_id: Option<&DeviceId>,
 	session: &str,
 ) -> Option<CanonicalJsonValue> {
-	let key = (
-		user_id.to_owned(),
-		device_id
-			.unwrap_or_else(|| EMPTY.into())
-			.to_owned(),
-		session.to_owned(),
-	);
+	let device_id = device_id.unwrap_or_else(|| EMPTY.into());
+	let key = (user_id.to_owned(), device_id.to_owned(), session.to_owned());
 
 	self.userdevicesessionid_uiaarequest
 		.read()
@@ -313,6 +284,7 @@ async fn get_uiaa_session(
 	session: &str,
 ) -> Result<UiaaInfo> {
 	let key = (user_id, device_id, session);
+
 	self.db
 		.userdevicesessionid_uiaainfo
 		.qry(&key)

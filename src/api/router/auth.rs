@@ -50,6 +50,7 @@ pub(super) async fn auth(
 ) -> Result<Auth> {
 	let bearer: Option<TypedHeader<Authorization<Bearer>>> =
 		request.parts.extract().await.unwrap_or(None);
+
 	let token = match &bearer {
 		| Some(TypedHeader(Authorization(bearer))) => Some(bearer.token()),
 		| None => request.query.access_token.as_deref(),
@@ -81,10 +82,9 @@ pub(super) async fn auth(
 							// already
 						},
 						| Token::None | Token::Invalid => {
-							return Err(Error::BadRequest(
-								ErrorKind::MissingToken,
-								"Missing or invalid access token.",
-							));
+							return Err!(Request(MissingToken(
+								"Missing or invalid access token."
+							)));
 						},
 					}
 				}
@@ -105,10 +105,9 @@ pub(super) async fn auth(
 							// already
 						},
 						| Token::None | Token::Invalid => {
-							return Err(Error::BadRequest(
-								ErrorKind::MissingToken,
-								"Missing or invalid access token.",
-							));
+							return Err!(Request(MissingToken(
+								"Missing or invalid access token."
+							)));
 						},
 					}
 				}
@@ -139,10 +138,10 @@ pub(super) async fn auth(
 						appservice_info: None,
 					})
 				} else {
-					Err(Error::BadRequest(ErrorKind::MissingToken, "Missing access token."))
+					Err!(Request(MissingToken("Missing access token.")))
 				}
 			},
-			| _ => Err(Error::BadRequest(ErrorKind::MissingToken, "Missing access token.")),
+			| _ => Err!(Request(MissingToken("Missing access token."))),
 		},
 		| (
 			AuthScheme::AccessToken | AuthScheme::AccessTokenOptional | AuthScheme::None,
@@ -165,14 +164,10 @@ pub(super) async fn auth(
 			appservice_info: None,
 		}),
 		| (AuthScheme::ServerSignatures, Token::Appservice(_) | Token::User(_)) =>
-			Err(Error::BadRequest(
-				ErrorKind::Unauthorized,
-				"Only server signatures should be used on this endpoint.",
-			)),
-		| (AuthScheme::AppserviceToken, Token::User(_)) => Err(Error::BadRequest(
-			ErrorKind::Unauthorized,
-			"Only appservice access tokens should be used on this endpoint.",
-		)),
+			Err!(Request(Unauthorized("Only server signatures should be used on this endpoint."))),
+		| (AuthScheme::AppserviceToken, Token::User(_)) => Err!(Request(Unauthorized(
+			"Only appservice access tokens should be used on this endpoint."
+		))),
 		| (AuthScheme::None, Token::Invalid) => {
 			// OpenID federation endpoint uses a query param with the same name, drop this
 			// once query params for user auth are removed from the spec. This is
