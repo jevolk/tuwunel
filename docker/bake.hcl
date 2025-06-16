@@ -1466,7 +1466,7 @@ target "rust" {
         cargo_installs = join(" ", cargo_installs)
 
         CARGO_TERM_VERBOSE = CARGO_TERM_VERBOSE
-        RUSTUP_HOME = "/opt/rust/rustup/${sys_name}"
+        RUSTUP_HOME = "/opt/rust/rustup/${sys_name}/${sys_target}"
         CARGO_HOME = "/opt/rust/cargo/${sys_name}/${sys_target}"
     }
 }
@@ -1671,8 +1671,8 @@ target "base" {
     }
     args = {
         DEBIAN_FRONTEND="noninteractive"
-        var_lib_apt = "/var/lib/apt"
-        var_cache = "/var/cache"
+        var_lib_apt = "/var/lib/apt/${sys_name}/${sys_version}/${sys_target}"
+        var_cache = "/var/cache/${sys_name}/${sys_version}/${sys_target}"
         packages = join(" ", base_pkgs)
     }
 }

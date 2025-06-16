@@ -85,7 +85,7 @@ RUN <<EOF
     cmake \
         --build build \
         --target install \
-        --parallel ${nprocs}
+        --parallel "${nprocs}"
 EOF
 
 

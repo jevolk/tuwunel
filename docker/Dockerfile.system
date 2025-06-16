@@ -17,8 +17,8 @@ COPY --link --from=input . .
 
 ENV DEBIAN_FRONTEND="${DEBIAN_FRONTEND}"
 RUN \
---mount=type=cache,dst=${var_cache},sharing=locked \
---mount=type=cache,dst=${var_lib_apt},sharing=locked \
+--mount=type=cache,dst=/var/cache,id=${var_cache},sharing=locked \
+--mount=type=cache,dst=/var/lib/apt,id=${var_lib_apt},sharing=locked \
 <<EOF
     echo $(uname -a) $0 $-
     set -eux

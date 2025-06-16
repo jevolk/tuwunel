@@ -56,8 +56,6 @@ sys_targets="${env_sys_targets:-$default_sys_targets}"
 sys_versions="${env_sys_versions:-$default_sys_versions}"
 
 docker_dir="$PWD/$BASEDIR"
-runner_name=$(echo $RUNNER_NAME | cut -d"." -f1)
-runner_num=$(echo $RUNNER_NAME | cut -d"." -f2)
 builder_name="${GITHUB_ACTOR:-owo}"
 toolchain_toml="$docker_dir/../rust-toolchain.toml"
 rust_msrv=$(grep "channel = " "$toolchain_toml" | cut -d'=' -f2 | sed 's/\s"\|"$//g')
@@ -92,11 +90,9 @@ if test "$CI" = "true"; then
 	args="$args --allow=network.host"
 fi
 
-if test ! -z "$runner_num"; then
-    #cpu_num=$(expr $runner_num % $(nproc))
-    #args="$args --cpuset-cpus=${cpu_num}"
-    #args="$args --set *.args.nprocs=1"
-    # https://github.com/moby/buildkit/issues/1276
+if test "$(uname)" = "Darwin"; then
+    nprocs=$(sysctl -n hw.logicalcpu)
+    args="$args --set *.args.nprocs=${nprocs}"
     :
 else
     nprocs=$(nproc)
