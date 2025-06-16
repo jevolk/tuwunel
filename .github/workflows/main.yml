@@ -18,7 +18,7 @@ concurrency:
 jobs:
   init:
     name: Init
-    runs-on: self-hosted
+    runs-on: ${{matrix.runner}}
     env:
       default_cargo_profiles: '["test", "release"]'
       default_feat_sets: '["none", "default", "all"]'
@@ -27,7 +27,7 @@ jobs:
       default_sys_versions: '["testing-slim"]'
       default_rust_targets: '["x86_64-unknown-linux-gnu"]'
       default_sys_targets: '["x86_64-linux-gnu"]'
-      default_machines: '["x86_64"]'
+      default_machines: '["X64"]'
 
     outputs:
       cargo_profiles: ${{vars.CARGO_PROFILES || env.default_cargo_profiles}}
@@ -40,8 +40,19 @@ jobs:
       machines: ${{vars.MACHINES || env.default_machines}}
       release_url: ${{steps.release.outputs.upload_url}}
 
+    strategy:
+      fail-fast: true
+      matrix:
+        runner: ${{fromJSON(vars.RUNNERS)}}
+        machine: ${{fromJSON(vars.MACHINES)}}
+        exclude: ${{fromJSON(vars.RUNNERS_EXCLUDES)}}
+
     steps:
     - name: Initialize Builder
+      env:
+        runner: ${{matrix.runner}}
+        reserved_space: '{"het": "256GB", "aws": "48GB", "gcp": "160GB"}'
+        max_used_space: '{"het": "448GB", "aws": "64GB", "gcp": "192GB"}'
       run: |
         set +e
         docker buildx inspect "${GITHUB_ACTOR}"
@@ -49,7 +60,9 @@ jobs:
           exit 0
         fi
 
-        set -e
+        set -eux
+        reserved_space=$(echo -n "$reserved_space" | jq -r ".$runner")
+        max_used_space=$(echo -n "$max_used_space" | jq -r ".$runner")
         cat <<EOF > ./buildkitd.toml
         [system]
           platformsCacheMaxAge = "504h"
@@ -57,11 +70,11 @@ jobs:
           enabled = true
           rootless = false
           gc = true
-          reservedSpace = "256GB"
-          maxUsedSpace = "576GB"
+          reservedSpace = "${reserved_space}"
+          maxUsedSpace = "${max_used_space}"
         [[worker.oci.gcpolicy]]
-          reservedSpace = "256GB"
-          maxUsedSpace = "576GB"
+          reservedSpace = "${reserved_space}"
+          maxUsedSpace = "${max_used_space}"
           filters = ["label!=cache==pin"]
           all = true
         EOF
@@ -76,6 +89,7 @@ jobs:
     - if: >
         !failure() && !cancelled()
         && contains(github.ref, 'refs/tags/v')
+        && matrix.runner == 'het'
 
       id: release
       name: Create Release
@@ -108,13 +122,22 @@ jobs:
       machines: ${{needs.init.outputs.machines}}
       excludes: >
         [
+          {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"},
+          {"cargo_profile": "test", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "none"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "default"},
           {"cargo_profile": "release-debuginfo"},
           {"cargo_profile": "release-native", "rust_toolchain": "stable"},
           {"cargo_profile": "release-native", "feat_set": "none"},
           {"cargo_profile": "release-native", "feat_set": "default"},
-          {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"},
-          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "none"},
-          {"cargo_profile": "release", "rust_toolchain": "nightly", "feat_set": "default"}
+          {"cargo_profile": "release-native", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "none"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "default"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "rust_toolchain": "nightly"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "sys_target": "x86_64-linux-gnu"},
+          {"rust_target": "x86_64-unknown-linux-gnu", "sys_target": "aarch64-linux-gnu"},
+          {"sys_target": "x86_64-linux-gnu", "machine": "ARM64"},
+          {"sys_target": "aarch64-linux-gnu", "machine": "X64"},
         ]
 
   test:
@@ -135,13 +158,23 @@ jobs:
       sys_targets: ${{needs.init.outputs.sys_targets}}
       sys_versions: ${{needs.init.outputs.sys_versions}}
       machines: ${{needs.init.outputs.machines}}
+      complement_runner: 'het'
       excludes: >
         [
           {"cargo_profile": "test", "rust_toolchain": "stable", "feat_set": "none"},
+          {"cargo_profile": "test", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"cargo_profile": "release-debuginfo"},
           {"cargo_profile": "release-native", "rust_toolchain": "stable"},
           {"cargo_profile": "release-native", "feat_set": "default"},
           {"cargo_profile": "release-native", "feat_set": "none"},
-          {"cargo_profile": "release-debuginfo"}
+          {"cargo_profile": "release-native", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "none"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "default"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "rust_toolchain": "nightly"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "sys_target": "x86_64-linux-gnu"},
+          {"rust_target": "x86_64-unknown-linux-gnu", "sys_target": "aarch64-linux-gnu"},
+          {"sys_target": "x86_64-linux-gnu", "machine": "ARM64"},
+          {"sys_target": "aarch64-linux-gnu", "machine": "X64"},
         ]
 
   package:
@@ -168,12 +201,19 @@ jobs:
           {"cargo_profile": "release-debuginfo", "feat_set": "default"},
           {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
           {"cargo_profile": "release-debuginfo", "bake_target": "oci"},
+          {"cargo_profile": "release-debuginfo", "rust_target": "aarch64-unknown-linux-gnu"},
           {"cargo_profile": "release-native", "feat_set": "default"},
           {"cargo_profile": "release-native", "rust_toolchain": "stable"},
           {"cargo_profile": "release-native", "feat_set": "default"},
           {"cargo_profile": "release-native", "bake_target": "docker"},
           {"cargo_profile": "release-native", "bake_target": "oci"},
-          {"cargo_profile": "release", "rust_toolchain": "nightly"}
+          {"cargo_profile": "release-native", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "default"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "sys_target": "x86_64-linux-gnu"},
+          {"rust_target": "x86_64-unknown-linux-gnu", "sys_target": "aarch64-linux-gnu"},
+          {"sys_target": "x86_64-linux-gnu", "machine": "ARM64"},
+          {"sys_target": "aarch64-linux-gnu", "machine": "X64"},
         ]
 
   publish:
@@ -198,9 +238,14 @@ jobs:
         [
           {"feat_set": "none"},
           {"cargo_profile": "test"},
-          {"rust_toolchain": "nightly", "cargo_profile": "release"},
           {"cargo_profile": "release-debuginfo"},
-          {"cargo_profile": "release-native"}
+          {"cargo_profile": "release-native"},
+          {"cargo_profile": "release", "rust_toolchain": "nightly"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "default"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "sys_target": "x86_64-linux-gnu"},
+          {"rust_target": "x86_64-unknown-linux-gnu", "sys_target": "aarch64-linux-gnu"},
+          {"sys_target": "x86_64-linux-gnu", "machine": "ARM64"},
+          {"sys_target": "aarch64-linux-gnu", "machine": "X64"},
         ]
 
     secrets:

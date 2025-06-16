@@ -41,6 +41,8 @@ on:
       complement_feat_sets:
         type: string
         default: '["all"]'
+      complement_runner:
+        type: string
 
 jobs:
   unit:
@@ -48,6 +50,7 @@ jobs:
       contains(fromJSON(inputs.cargo_profiles), fromJSON('["test"]')[0])
       && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["nightly"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
 
     name: Unit
     uses: ./.github/workflows/bake.yml
@@ -60,12 +63,16 @@ jobs:
       sys_versions: ${{inputs.sys_versions}}
       rust_targets: ${{inputs.rust_targets}}
       sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
+      machines: '["X64"]'
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
 
   smoke:
-    if: inputs.cargo_profiles
+    if: >
+      !failure() && !cancelled()
+      && inputs.cargo_profiles
+      && inputs.machines
+
     name: Smoke
     uses: ./.github/workflows/bake.yml
     with:
@@ -82,26 +89,37 @@ jobs:
       excludes: >
         [
           {"cargo_profile": "test", "feat_set": "default"},
-          {"cargo_profile": "test", "rust_toolchain": "stable"},
           {"cargo_profile": "test", "feat_set": "none", "bake_target": "smoke-valgrind"},
+          {"cargo_profile": "test", "rust_toolchain": "stable"},
+          {"cargo_profile": "test", "rust_target": "aarch64-unknown-linux-gnu"},
           {"cargo_profile": "release", "rust_toolchain": "nightly"},
           {"cargo_profile": "release", "rust_toolchain": "stable", "feat_set": "none"},
           {"cargo_profile": "release", "bake_target": "smoke-valgrind"},
           {"cargo_profile": "release-debuginfo", "rust_toolchain": "nightly"},
           {"cargo_profile": "release-debuginfo", "rust_toolchain": "stable", "feat_set": "none"},
           {"cargo_profile": "release-debuginfo", "bake_target": "smoke"},
+          {"cargo_profile": "release-debuginfo", "rust_target": "aarch64-unknown-linux-gnu"},
           {"cargo_profile": "release-native", "rust_toolchain": "stable"},
           {"cargo_profile": "release-native", "feat_set": "none"},
           {"cargo_profile": "release-native", "feat_set": "default"},
-          {"cargo_profile": "release-native", "bake_target": "smoke-valgrind"}
+          {"cargo_profile": "release-native", "bake_target": "smoke-valgrind"},
+          {"cargo_profile": "release-native", "rust_target": "aarch64-unknown-linux-gnu"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "none"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "feat_set": "default"},
+          {"rust_target": "aarch64-unknown-linux-gnu", "sys_target": "x86_64-linux-gnu"},
+          {"rust_target": "x86_64-unknown-linux-gnu", "sys_target": "aarch64-linux-gnu"},
+          {"sys_target": "x86_64-linux-gnu", "machine": "ARM64"},
+          {"sys_target": "aarch64-linux-gnu", "machine": "X64"},
         ]
 
   complement:
     if: >
-      inputs.complement
+      !failure() && !cancelled()
+      && inputs.complement
       && contains(fromJSON(inputs.cargo_profiles), fromJSON('["test"]')[0])
       && contains(fromJSON(inputs.complement_feat_sets), fromJSON('["all"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["nightly"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
 
     name: Complement
     uses: ./.github/workflows/bake.yml
@@ -114,20 +132,24 @@ jobs:
       sys_versions: ${{inputs.sys_versions}}
       rust_targets: ${{inputs.rust_targets}}
       sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
+      machines: '["X64"]'
+      runner: ${{inputs.complement_runner}}
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
 
   compliance:
     if: >
-      inputs.complement
+      !failure() && !cancelled()
+      && inputs.complement
+      && inputs.machines
       && contains(fromJSON(inputs.cargo_profiles), fromJSON('["test"]')[0])
       && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["nightly"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
 
     name: Matrix Compliance
     needs: [complement]
-    runs-on: ${{matrix.machine}}
+    runs-on: ["${{matrix.machine}}", "${{inputs.complement_runner}}"]
     concurrency:
       group: complement-cant-walk-and-chew-bubblegum
       cancel-in-progress: false
@@ -142,7 +164,7 @@ jobs:
         sys_version: ${{fromJSON(inputs.sys_versions)}}
         rust_target: ${{fromJSON(inputs.rust_targets)}}
         sys_target: ${{fromJSON(inputs.sys_targets)}}
-        machine: ${{fromJSON(inputs.machines)}}
+        machine: ${{fromJSON('["X64"]')}}
         exclude: ${{fromJSON(inputs.excludes)}}
         include: ${{fromJSON(inputs.includes)}}
 

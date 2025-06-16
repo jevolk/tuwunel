@@ -3,7 +3,7 @@
 FROM input AS rustup
 ARG RUST_HOME
 ARG rust_target
-ARG rustup_version="1.28.1"
+ARG rustup_version="1.28.2"
 ARG rustup_profile="minimal"
 
 WORKDIR /
@@ -13,7 +13,8 @@ WORKDIR ${RUST_HOME}
 RUN <<EOF
     set -eux
 
-    url="https://static.rust-lang.org/rustup/archive/${rustup_version}/${rust_target}/rustup-init"
+    var="${rustup_version}/${rust_target}"
+    url="https://static.rust-lang.org/rustup/archive/$var/rustup-init"
     curl -S -O -s "$url"
     chmod o+x rustup-init
 EOF

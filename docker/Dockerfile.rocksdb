@@ -29,7 +29,7 @@ ARG rocksdb_shared=0
 ARG rocksdb_portable=1
 ARG rocksdb_opt_level="3"
 ARG rocksdb_build_type="Release"
-ARG rocksdb_cxx_flags="-ftls-model=initial-exec"
+ARG rocksdb_cxx_flags="-ftls-model=initial-exec -mno-outline-atomics"
 ARG rocksdb_make_verbose="ON"
 ARG rocksdb_make_rule_messages="OFF"
 ARG rocksdb_jemalloc=1

@@ -156,7 +156,33 @@ variable "git_checkout" {
 # Rustflags
 #
 
-rustflags = []
+rustflags = [
+    "-C link-arg=--verbose",
+    "-C link-arg=-Wl,--gc-sections",
+]
+
+static_rustflags = [
+    "-C relocation-model=static",
+    "-C target-feature=+crt-static",
+]
+
+static_libs = [
+    "-C link-arg=-l:libstdc++.a",
+    "-C link-arg=-l:libc.a",
+    "-C link-arg=-l:libm.a",
+]
+
+dynamic_rustflags = [
+    "-C relocation-model=pic",
+    "-C target-feature=-crt-static",
+    "-C link-arg=-Wl,--as-needed",
+]
+
+dynamic_libs = [
+    "-C link-arg=-lstdc++",
+    "-C link-arg=-lc",
+    "-C link-arg=-lm",
+]
 
 nightly_rustflags = [
     "--cfg tokio_unstable",
@@ -168,33 +194,11 @@ nightly_rustflags = [
     #"-Z time-llvm-passes",
 ]
 
-static_rustflags = [
-    "-C relocation-model=static",
-    "-C target-feature=+crt-static",
-    "-C link-arg=--verbose",
-    "-C link-arg=-Wl,--gc-sections",
-    "-C link-arg=-L/usr/lib/gcc/x86_64-linux-gnu/14",     # FIXME
-    "-C link-arg=-l:libstdc++.a",
-    "-C link-arg=-l:libc.a",
-    "-C link-arg=-l:libm.a",
-]
-
-dynamic_rustflags = [
-    "-C relocation-model=pic",
-    "-C target-feature=-crt-static",
-    "-C link-arg=--verbose",
-    "-C link-arg=-Wl,--gc-sections",
-    "-C link-arg=-Wl,--as-needed",
-    "-C link-arg=-lstdc++",
-    "-C link-arg=-lc",
-    "-C link-arg=-lm",
-]
-
 static_nightly_rustflags = [
     "-Z tls-model=local-exec",
 ]
 
-rmp_rustflags = [
+native_rustflags = [
     "-C target-cpu=native",
     "-Z tune-cpu=native",
     "-Z inline-mir=true",
@@ -1188,56 +1192,73 @@ target "deps-base" {
                 join(" ", [
                     join(" ", rustflags),
                     join(" ", nightly_rustflags),
+                    join(" ", static_rustflags),
+                    join(" ", static_nightly_rustflags),
+                    join(" ", native_rustflags),
+                    "-C link-arg=-L/usr/lib/gcc/${sys_target}/14", #FIXME
                     contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
                         "-C link-arg=-l:libzstd.a": "",
                     contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
                         "-C link-arg=-l:liburing.a": "",
-                    join(" ", static_rustflags),
-                    join(" ", static_nightly_rustflags),
-                    join(" ", rmp_rustflags),
+                    join(" ", static_libs),
+                    sys_target == "aarch64-linux-gnu"?
+                        "-C link-arg=-l:libgcc.a": "",
                 ]):
 
             cargo_profile == "release" && rust_toolchain == "nightly"?
                 join(" ", [
                     join(" ", rustflags),
                     join(" ", nightly_rustflags),
+                    join(" ", static_rustflags),
+                    join(" ", static_nightly_rustflags),
+                    "-C link-arg=-L/usr/lib/gcc/${sys_target}/14", #FIXME
                     contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
                         "-C link-arg=-l:libzstd.a": "",
                     contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
                         "-C link-arg=-l:liburing.a": "",
-                    join(" ", static_rustflags),
-                    join(" ", static_nightly_rustflags),
+                    join(" ", static_libs),
+                    sys_target == "aarch64-linux-gnu"?
+                        "-C link-arg=-l:libgcc.a": "",
                 ]):
 
             cargo_profile == "release" || cargo_profile == "release-debuginfo"?
                 join(" ", [
                     join(" ", rustflags),
+                    join(" ", static_rustflags),
+                    "-C link-arg=-L/usr/lib/gcc/${sys_target}/14", #FIXME
                     contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
                         "-C link-arg=-l:libzstd.a": "",
                     contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
                         "-C link-arg=-l:liburing.a": "",
-                    join(" ", static_rustflags),
+                    join(" ", static_libs),
+                    sys_target == "aarch64-linux-gnu"?
+                        "-C link-arg=-l:libgcc.a": "",
                 ]):
 
             rust_toolchain == "stable"?
                 join(" ", [
                     join(" ", rustflags),
+                    join(" ", static_rustflags),
+                    "-C link-arg=-L/usr/lib/gcc/${sys_target}/14", #FIXME
                     contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
                         "-C link-arg=-l:libzstd.a": "",
                     contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
                         "-C link-arg=-l:liburing.a": "",
-                    join(" ", static_rustflags),
+                    join(" ", static_libs),
+                    sys_target == "aarch64-linux-gnu"?
+                        "-C link-arg=-l:libgcc.a": "",
                 ]):
 
             rust_toolchain == "nightly"?
                 join(" ", [
                     join(" ", rustflags),
                     join(" ", nightly_rustflags),
+                    join(" ", dynamic_rustflags),
                     contains(split(",", cargo_feat_sets[feat_set]), "zstd_compression")?
                         "-C link-arg=-lzstd": "",
                     contains(split(",", cargo_feat_sets[feat_set]), "io_uring")?
                         "-C link-arg=-luring": "",
-                    join(" ", dynamic_rustflags),
+                    join(" ", dynamic_libs),
                 ]):
 
             join(" ", [
@@ -1429,7 +1450,7 @@ cargo_installs = [
     "cargo-chef",
     "cargo-audit",
     "cargo-deb",
-    "cargo-arch",
+    #"cargo-arch",
     "cargo-generate-rpm",
     "lychee",
     "mdbook",

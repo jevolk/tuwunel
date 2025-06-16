@@ -46,6 +46,7 @@ jobs:
       && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
       && contains(fromJSON(inputs.feat_sets), fromJSON('["default"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
 
     name: Book
     uses: ./.github/workflows/bake.yml
@@ -58,7 +59,8 @@ jobs:
       sys_names: ${{inputs.sys_names}}
       sys_targets: ${{inputs.sys_targets}}
       sys_versions: ${{inputs.sys_versions}}
-      machines: ${{inputs.machines}}
+      machines: '["X64"]'
+      runner: 'het'
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
       release_url: ${{inputs.release_url}}
@@ -142,6 +144,7 @@ jobs:
       && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
       && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
       && github.ref == 'refs/heads/main'
 
     name: Distro Packages
@@ -155,7 +158,7 @@ jobs:
       sys_versions: ${{inputs.sys_versions}}
       rust_targets: ${{inputs.rust_targets}}
       sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
+      machines: '["X64"]'
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}
       release_url: ${{inputs.release_url}}
@@ -179,6 +182,7 @@ jobs:
       && contains(fromJSON(inputs.feat_sets), fromJSON('["all"]')[0])
       && contains(fromJSON(inputs.cargo_profiles), fromJSON('["release"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
       && github.ref == 'refs/heads/main'
 
     name: Check Packages
@@ -193,6 +197,6 @@ jobs:
       sys_versions: ${{inputs.sys_versions}}
       rust_targets: ${{inputs.rust_targets}}
       sys_targets: ${{inputs.sys_targets}}
-      machines: ${{inputs.machines}}
+      machines: '["X64"]'
       excludes: ${{inputs.excludes}}
       includes: ${{inputs.includes}}

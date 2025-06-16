@@ -30,6 +30,10 @@ on:
       machines:
         type: string
         description: Hardware platforms
+      runner:
+        type: string
+        description: Runner mask
+        default: 'self-hosted'
       excludes:
         type: string
         default: '[]'
@@ -86,7 +90,7 @@ jobs:
       ${{matrix.sys_version}}
       ${{matrix.sys_target}}
 
-    runs-on: ${{matrix.machine}}
+    runs-on: ["${{matrix.machine}}", "${{inputs.runner}}"]
     strategy:
       fail-fast: ${{inputs.fail_fast}}
       max-parallel: ${{inputs.max-parallel}}

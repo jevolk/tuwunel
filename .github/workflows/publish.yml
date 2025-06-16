@@ -49,12 +49,12 @@ jobs:
   documents:
     if: >
       !failure() && !cancelled()
-      && inputs.machines
+      && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
       && (github.ref == 'refs/heads/main' || contains(github.ref, 'refs/tags/v'))
       && !contains(github.ref, '-draft')
 
     name: Documents
-    runs-on: self-hosted
+    runs-on: ['X64', 'het']
     permissions:
       pages: write
       id-token: write
