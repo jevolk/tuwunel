@@ -47,6 +47,7 @@ jobs:
       && contains(fromJSON(inputs.feat_sets), fromJSON('["default"]')[0])
       && contains(fromJSON(inputs.rust_toolchains), fromJSON('["stable"]')[0])
       && contains(fromJSON(inputs.machines), fromJSON('["X64"]')[0])
+      && false
 
     name: Book
     uses: ./.github/workflows/bake.yml
@@ -76,6 +77,7 @@ jobs:
   binary:
     if: >
       !failure() && !cancelled()
+      && false
 
     name: Binaries
     uses: ./.github/workflows/bake.yml
@@ -106,6 +108,7 @@ jobs:
   container:
     if: >
       !failure() && !cancelled()
+      && false
 
     name: Containers
     uses: ./.github/workflows/bake.yml

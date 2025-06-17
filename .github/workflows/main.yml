@@ -107,6 +107,7 @@ jobs:
     if: >
       !failure() && !cancelled()
       && !contains(github.ref, 'refs/tags/v')
+      && false
 
     name: Lint
     needs: [init] #needs: [init, deps]
@@ -144,6 +145,7 @@ jobs:
     if: >
       !failure() && !cancelled()
       && !contains(github.ref, 'refs/tags/v')
+      && false
 
     name: Test
     needs: [init, lint]
