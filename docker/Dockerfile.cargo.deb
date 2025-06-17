@@ -55,15 +55,16 @@ RUN \
             --output "${pkg_dir}" \
             ${deb_args}
 
-	dpkg --info ${pkg_dir}/*
-	dpkg --contents ${pkg_dir}/*
+	mv ${pkg_dir}/* "${pkg_dir}/tuwunel.deb"
+	dpkg --info "${pkg_dir}/tuwunel.deb"
+	dpkg --contents "${pkg_dir}/tuwunel.deb"
 EOF
 
 
 FROM scratch AS deb
 ARG pkg_dir
 
-COPY --from=input ${pkg_dir}/* .
+COPY --from=input ${pkg_dir}/tuwunel.deb .
 
 
 FROM input AS deb-install
@@ -76,7 +77,7 @@ WORKDIR ${pkg_dir}
 COPY --from=deb . .
 RUN <<EOF
 	set -eux
-	dpkg --info *
-	dpkg --contents *
-	dpkg --install *
+	dpkg --info tuwunel.deb
+	dpkg --contents tuwunel.deb
+	dpkg --install tuwunel.deb
 EOF
