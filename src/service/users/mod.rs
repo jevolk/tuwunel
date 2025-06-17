@@ -12,7 +12,7 @@ use ruma::{
 	events::{GlobalAccountDataEventType, ignored_user_list::IgnoredUserListEvent},
 };
 use tuwunel_core::{
-	Err, Result, Server, debug_warn, err, trace,
+	Err, Result, Server, debug_warn, err, is_equal_to, trace,
 	utils::{self, ReadyExt, stream::TryIgnore},
 };
 use tuwunel_database::{Deserialized, Json, Map};
@@ -255,8 +255,8 @@ impl Service {
 				.userid_origin
 				.get(user_id)
 				.await
-				.deserialized::<String>()?
-				== "ldap"
+				.deserialized::<String>()
+				.is_ok_and(is_equal_to!("ldap"))
 		{
 			return Err!(Request(InvalidParam("Cannot change password of a LDAP user")));
 		}
